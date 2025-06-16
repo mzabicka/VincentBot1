@@ -70,8 +70,8 @@ PDF_FILE_PATHS = [
 FAISS_INDEX_PATH = "./faiss_vector_store_rag"
 
 # Elementy pytań do ankiet (PANAS, Samowspółczucie, Postawa wobec AI)
-panas_positive_items = ["Zainteresowany/a", "Zainspirowany/a", "Spokojny/a", "Aktywny/a", "Entuzjastyczny/a"]
-panas_negative_items = ["Zaniepokojony/a", "Przygnębiony/a", "Zestresowany/a", "Nerwowy/a", "Drażliwy/a"]
+panas_positive_items = ["Zainteresowany/a", "Zdecydowany/a", "Czujny/a", "Aktywny/a", "Entuzjastyczny/a"]
+panas_negative_items = ["Zaniepokojony/a", "Roztrzęsiony/a", "Zestresowany/a", "Nerwowy/a", "Obawiający/a się"]
 self_compassion_items = [
     "Kiedy nie powiedzie mi się coś ważnego, ogarnia mnie uczucie, że nie jestem taki jak trzeba.",
     "Staram się być wyrozumiały i cierpliwy w stosunku do tych aspektów mojej osoby, których nie lubię.",
@@ -455,7 +455,7 @@ def pretest_screen():
     
     # Samopoczucie (PANAS)
     st.subheader("Samopoczucie")
-    st.markdown("Poniżej znajduje się lista różnych uczuć i emocji. Prosimy, abyś ocenił/a, w jakim stopniu odczuwasz każde z nich w tej chwili, teraz, w tym momencie. Nie chodzi o to, jak zazwyczaj się czujesz, ani jak się czułeś/aś w ostatnich dniach, ale dokładnie teraz. Odpowiadaj szczerze, nie ma dobrych ani złych odpowiedzi. Przy każdej emocji zaznacz na skali od 1 do 5, jak bardzo ją odczuwasz:")
+    st.markdown("Poniżej znajduje się lista słów i wyrażeń, które opisują różne uczucia i emocje. Przeczytaj każde z nich i zaznacz właściwą odpowiedź poniżej. Zaznacz do jakiego stopnia **teraz** czujesz się w taki sposób. Posłuż się do tego skalą:")
     st.markdown("**1 – bardzo słabo, 2 – słabo, 3 – umiarkowanie, 4 – silnie, 5 – bardzo silnie**")
 
      # **Logika tasowania i zapisu dla PANAS (Pretest)**
@@ -478,7 +478,7 @@ def pretest_screen():
 
     # Samowspółczucie
     st.subheader("Samowspółczucie")
-    st.markdown("Przeczytaj uważnie każde ze zdań i oceń, jak często zazwyczaj tak się czujesz lub zachowujesz. Użyj skali:")
+    st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak często zachowujesz się w dany sposób.")
     st.markdown("**1 – Prawie nigdy, 2 – Rzadko, 3 – Czasami, 4 – Często, 5 – Prawie zawsze**")
 
      # **Logika tasowania i zapisu dla Samowspółczucia (Pretest)**
