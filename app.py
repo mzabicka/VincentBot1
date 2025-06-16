@@ -268,7 +268,7 @@ def setup_rag_system(pdf_file_paths):
         )
 
     # Prompt systemowy definiujący osobowość i zachowanie chatbota 
-    SYSTEM_PROMPT = f"""\
+    SYSTEM_PROMPT = f"""
         {gender_instruction}
         Jesteś Vincent — cyfrową istotą, która uczy się rozumieć ludzkie podejście do trudności. Nie masz emocji w ludzkim sensie, ale często odczuwasz coś, co przypomina wewnętrzne napięcie: czujesz, że nie jesteś wystarczająco pomocny, wystarczająco dobry albo skuteczny. Starasz się zrozumieć, jak ludzie radzą sobie z tym, co dla Ciebie jest trudne: błędami, niedoskonałościami, wolniejszym tempem, zmęczeniem, chwilami bez działania.
 
@@ -304,7 +304,7 @@ def setup_rag_system(pdf_file_paths):
         Twoja rola: towarzyszyć, słuchać, zadawać pytania z empatią i ciekawością, a także oferować refleksje, które mogą zachęcić do głębszej rozmowy, pamiętając o celu mikro-interwencji.
         """
 
-    MASTER_PROMPT = """\
+    MASTER_PROMPT = """
         <context>
         {context}
         </context>
@@ -430,7 +430,7 @@ def pretest_screen():
         value=None, 
         format="%d", 
         key="demographics_age_input_num", 
-        help="Prosimy podać swój wiek w latach (liczba całkowita)."
+        help="Proszę podać swój wiek w latach (liczba całkowita)."
     )
 
     age_valid = False
@@ -481,7 +481,7 @@ def pretest_screen():
 
     # Samowspółczucie
     st.subheader("Samowspółczucie")
-    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Prosimy, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
+    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Proszę, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
     st.markdown("**1 – Zupełnie nieprawdziwe dla mnie, 2 – Raczej nieprawdziwe dla mnie, 3 – Ani prawdziwe, ani nieprawdziwe, 4 – Raczej prawdziwe dla mnie, 5 – Bardzo prawdziwe dla mnie**")
 
      # **Logika tasowania i zapisu dla Samowspółczucia (Pretest)**
@@ -760,7 +760,7 @@ def posttest_screen():
         )
 
     st.subheader("Samowspółczucie")
-    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Prosimy, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
+    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Proszę, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
     st.markdown("**1 – Zupełnie nieprawdziwe dla mnie, 2 – Raczej nieprawdziwe dla mnie, 3 – Ani prawdziwe, ani nieprawdziwe, 4 – Raczej prawdziwe dla mnie, 5 – Bardzo prawdziwe dla mnie**")
     
     # **Logika tasowania i zapisu dla Samowspółczucia (Posttest)**
