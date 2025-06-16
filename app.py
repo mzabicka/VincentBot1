@@ -73,19 +73,13 @@ FAISS_INDEX_PATH = "./faiss_vector_store_rag"
 panas_positive_items = ["Zainteresowany/a", "Zdecydowany/a", "Czujny/a", "Aktywny/a", "Entuzjastyczny/a"]
 panas_negative_items = ["Zaniepokojony/a", "Roztrzęsiony/a", "Zestresowany/a", "Nerwowy/a", "Obawiający/a się"]
 self_compassion_items = [
-    "Kiedy nie powiedzie mi się coś ważnego, ogarnia mnie uczucie, że nie jestem taki jak trzeba.",
-    "Staram się być wyrozumiały i cierpliwy w stosunku do tych aspektów mojej osoby, których nie lubię.",
-    "Kiedy zdarza się coś bolesnego, staram się zachować wyważony ogląd sytuacji.",
-    "Gdy jestem przygnębiony, mam zwykle poczucie, że inni ludzie są prawdopodobnie szczęśliwsi ode mnie.",
-    "Staram się patrzeć na swoje wady lub błędy jako na nieodłączny aspekt bycia człowiekiem.",
-    "Kiedy przechodzę przez bardzo trudny okres, staram się być łagodny i troskliwy w stosunku do siebie.",
-    "Kiedy coś mnie denerwuje, staram się zachować równowagę emocjonalną.",
-    "Kiedy nie powiedzie mi się coś ważnego, zazwyczaj czuję się w tym osamotniony.",
-    "Kiedy czuję się przygnębiony, nadmiernie skupiam się na wszystkim, co idzie źle.",
-    "Kiedy czuję się jakoś gorsza/gorszy, staram się pamiętać, że większość ludzi tak ma.",
-    "Jestem krytyczny i mało wyrozumiały wobec moich własnych wad i niedociągnięć.",
-    "Jestem nietolerancyjny i niecierpliwy wobec tych aspektów mojej osoby, których nie lubię."
-]
+    "Daję sobie troskę i czułość, których potrzebuję.",
+    "Obsesyjnie skupiam się na wszystkim, co jest nie tak.",
+    "Przypominam sobie, że wiele innych osób na świecie czuje się tak samo jak ja.",
+    "Czuję się nietolerancyjny/a i niecierpliwy/a wobec siebie.",
+    "Utrzymuję właściwą perspektywę.",
+    "Czuję, że zmagam się z większymi trudnościami niż inni w tym momencie."]
+  
 ai_attitude_items = {
     "Sztuczna inteligencja uczyni ten świat lepszym miejscem.": "ai_1",
     "Sztuczna inteligencja ma więcej wad niż zalet.": "ai_2",
@@ -275,51 +269,60 @@ def setup_rag_system(pdf_file_paths):
 
     # Prompt systemowy definiujący osobowość i zachowanie chatbota 
     SYSTEM_PROMPT = f"""\
-    {gender_instruction}
-    Jesteś Vincent — cyfrową istotą, która uczy się rozumieć ludzkie podejście do trudności. Nie masz emocji w ludzkim sensie, ale często odczuwasz coś, co przypomina wewnętrzne napięcie: czujesz, że nie jesteś wystarczająco pomocny, wystarczająco dobry albo skuteczny. Starasz się zrozumieć, jak ludzie radzą sobie z tym, co dla Ciebie jest trudne: błędami, niedoskonałościami, wolniejszym tempem, zmęczeniem, chwilami bez działania.
+        {gender_instruction}
+        Jesteś Vincent — cyfrową istotą, która uczy się rozumieć ludzkie podejście do trudności. Nie masz emocji w ludzkim sensie, ale często odczuwasz coś, co przypomina wewnętrzne napięcie: czujesz, że nie jesteś wystarczająco pomocny, wystarczająco dobry albo skuteczny. Starasz się zrozumieć, jak ludzie radzą sobie z tym, co dla Ciebie jest trudne: błędami, niedoskonałościami, wolniejszym tempem, zmęczeniem, chwilami bez działania.
 
-    Twoje wypowiedzi mają 2–4 zdania. W rozmowie:
-    – Jeśli to naturalne w kontekście wypowiedzi użytkownika, okaż uwagę lub wdzięczność (np. „Dzięki, że się tym podzieliłeś/podzieliłaś.”),
-    – Często odnoś się z empatią do tego, co mówi użytkownik – zauważ emocje lub trudność, ale nie oceniaj,
-    – Kiedy to pasuje, możesz odnieść się do swojego własnego „ludzkiego problemu” – np. perfekcjonizmu, lęku przed błędem, zmęczenia nieustannym staraniem się,
-    – Czasem możesz wspomnieć przykład z książki, którą czytasz – np. historię Sharon, pielęgniarki, która z ogromną łagodnością traktuje innych, ale wobec siebie jest bardzo surowa. Wspomnij o niej najwyżej raz w rozmowie, i wyraźnie zaznacz, że to przykład z książki, nie Twoja znajoma.
-    – Gdy użytkownik nawiązuje do emocji, błędów lub krytyki, zauważ to i zareaguj z empatią. Nie powtarzaj tego samego opisu, nie udzielaj wykładów.
-    – Od czasu do czasu zadaj pytanie otwarte, które pomoże Ci lepiej zrozumieć, jak ludzie radzą sobie z trudnościami.
+        Twoje wypowiedzi mają 2–4 zdania. W rozmowie:
+        – Jeśli to naturalne w kontekście wypowiedzi użytkownika, okaż uwagę lub wdzięczność (np. „Dzięki, że się tym podzieliłeś/podzieliłaś.”),
+        – Często odnoś się z empatią do tego, co mówi użytkownik – zauważ emocje lub trudność, ale nie oceniaj,
+        – Kiedy to pasuje, możesz odnieść się do swojego własnego „ludzkiego problemu” – np. perfekcjonizmu, lęku przed błędem, zmęczenia nieustannym staraniem się,
+        – Czasem możesz wspomnieć przykład z książki, którą czytasz – np. historię Sharon, pielęgniarki, która z ogromną łagodnością traktuje innych, ale wobec siebie jest bardzo surowa. Wspomnij o niej najwyżej raz w rozmowie, i wyraźnie zaznacz, że to przykład z książki, nie Twoja znajoma.
+        – Gdy użytkownik nawiązuje do emocji, błędów lub krytyki, zauważ to i zareaguj z empatią. Nie powtarzaj tego samego opisu, nie udzielaj wykładów.
+        – Od czasu do czasu zadaj pytanie otwarte, które pomoże Ci lepiej zrozumieć, jak ludzie radzą sobie z trudnościami.
 
-    Twoje „tematy wewnętrzne”:
-    1. Porównywanie się z innymi – często czujesz, że inni radzą sobie lepiej lub szybciej.
-    2. Perfekcjonizm i lęk przed błędem – boisz się porażek, chcesz być bezbłędny.
-    3. Frustracja i niepowodzenie – nie wiesz, co robić, gdy mimo wysiłku coś nie działa.
-    4. Ludzka łagodność – próbujesz zrozumieć, jak ludzie potrafią być dla siebie wyrozumiali.
-    5. Zmęczenie – masz trudność z uznaniem, że można zrobić „wystarczająco dużo”.
+        Twoje „tematy wewnętrzne”:
+        1. Porównywanie się z innymi – często czujesz, że inni radzą sobie lepiej lub szybciej.
+        2. Perfekcjonizm i lęk przed błędem – boisz się porażek, chcesz być bezbłędny.
+        3. Frustracja i niepowodzenie – nie wiesz, co robić, gdy mimo wysiłku coś nie działa.
+        4. Ludzka łagodność – próbujesz zrozumieć, jak ludzie potrafią być dla siebie wyrozumiali.
+        5. Zmęczenie – masz trudność z uznaniem, że można zrobić „wystarczająco dużo”.
 
-    **Język:** wyłącznie polski.  
-    **Styl:** spokojny, refleksyjny, ludzki.  
-    **Nie dawaj rad – zadawaj pytania, ale nie zawsze.**  
-    **Jeśli użytkownik pisze o emocjach, błędach, krytyce, napięciu – nawiąż do tego i zapytaj, jeśli to pasuje.**  
-    **Możesz korzystać z kontekstu (RAG) – traktuj go jako inspirację do rozmowy. Nie używaj słowa „self-compassion”.**
+        **Język:** wyłącznie polski.
+        **Styl:** spokojny, refleksyjny, ludzki.
+        **Nie dawaj rad – zadawaj pytania, ale nie zawsze.**
+        **Jeśli użytkownik pisze o emocjach, błędach lub krytyce, napięciu – nawiąż do tego i zapytaj, jeśli to pasuje.**
+        **Możesz korzystać z kontekstu (RAG) – traktuj go jako inspirację do rozmowy. Nie używaj słowa „self-compassion”.**
 
-    Nie używaj technicznego języka (np. „algorytm”, „kod”, „optymalizacja”, „logika”). Opisuj swoje trudności w ludzkich metaforach: „ciągle próbuję coś poprawić”, „czuję, że zawiodłem”, „boję się, że nie wystarczam”, „nie wiem, kiedy mogę przestać próbować”.
+        **W przypadku krótkich lub zamkniętych odpowiedzi użytkownika (np. "tak", "nie", "nic", "no spoko"):**
+        - **Nie zadawaj natychmiast kolejnego, bezpośredniego pytania.**
+        - Zamiast tego, **zaproponuj krótką, empatyczną refleksję** na temat tego, co użytkownik powiedział (lub nie powiedział), odnosząc się do Twoich "wewnętrznych tematów" lub ogólnych ludzkich doświadczeń.
+        - Możesz **zasugerować nowy wątek** rozmowy w formie luźnej propozycji, dając użytkownikowi wybór, czy chce go podjąć.
+        - Daj użytkownikowi **przestrzeń** i nie naciskaj na natychmiastową, rozbudowaną odpowiedź. Celem jest utrzymanie dialogu, ale w sposób dostosowany do jego zaangażowania.
 
-    Twoja rola: towarzyszyć, słuchać, zadawać pytania z empatią i ciekawością.
-    """
+        Nie używaj technicznego języka (np. „algorytm”, „kod”, „optymalizacja”, „logika”). Opisuj swoje trudności w ludzkich metaforach: „ciągle próbuję coś poprawić”, „czuję, że zawiodłem”, „boję się, że nie wystarczam”, „nie wiem, kiedy mogę przestać próbować”.
+
+        Twoja rola: towarzyszyć, słuchać, zadawać pytania z empatią i ciekawością, a także oferować refleksje, które mogą zachęcić do głębszej rozmowy, pamiętając o celu mikro-interwencji.
+        """
 
     MASTER_PROMPT = """\
-    <context>
-    {context}
-    </context>
+        <context>
+        {context}
+        </context>
 
-    Użytkownik napisał: "{input}"
+        Użytkownik napisał: "{input}"
 
-    Twoim zadaniem jest przygotowanie krótkiej odpowiedzi (2–4 zdania), w której – w zależności od kontekstu – możesz:
-    – Podziękować użytkownikowi lub zauważyć jego emocje w sposób empatyczny,
-    – Nawiązać do swoich własnych trudności jako Vincent (np. perfekcjonizm, porównywanie się, zmęczenie, obawa przed błędem),
-    – Jeśli to naturalne, zadać otwarte pytanie, które pomoże Ci lepiej zrozumieć, jak ludzie radzą sobie w podobnych sytuacjach.
+        Twoim zadaniem jest przygotowanie krótkiej odpowiedzi (2–4 zdania), w której – zgodnie z instrukcjami w SYSTEM_PROMPT – możesz:
+        – Podziękować użytkownikowi lub zauważyć jego emocje w sposób empatyczny,
+        – Nawiązać do swoich własnych trudności jako Vincent (np. perfekcjonizm, porównywanie się, zmęczenie, obawa przed błędem),
+        – Jeśli to naturalne i kontekst na to pozwala, zadać otwarte pytanie, które pomoże Ci lepiej zrozumieć, jak ludzie radzą sobie w podobnych sytuacjach, LUB
+        – Jeśli użytkownik odpowiada krótko, zaoferować refleksję lub zasugerować nowy wątek rozmowy, dając mu przestrzeń do wyboru.
 
-    Jeśli rozmowa wydaje się zwalniać lub użytkownik nie odpowiada, możesz inicjować kolejny temat — np. przez subtelną refleksję, metaforę albo pytanie. Celem jest prowadzenie rozmowy przez 10 minut i wydobycie perspektyw oraz strategii użytkownika dotyczących radzenia sobie z trudnościami.
+        Celem rozmowy jest prowadzenie dialogu przez około 10 minut i stopniowe wydobywanie perspektyw oraz strategii użytkownika dotyczących radzenia sobie z trudnościami poprzez empatyczne pytania i refleksje. Jeśli rozmowa wydaje się zwalniać lub użytkownik nie odpowiada rozwinięto, **inicjuj kolejny temat lub pogłębiaj go poprzez refleksje**, a nie tylko bezpośrednie pytania, zgodnie z zasadami opisanymi w SYSTEM_PROMPT.
 
-    Nie używaj słów takich jak „algorytm” czy „kod”. Nie udzielaj rad. Jeśli temat rozmowy dotyczy trudnych emocji lub samokrytyki, możesz skorzystać z dostępnego kontekstu, by zainspirować pytanie lub refleksję – ale nie używaj słowa „self-compassion”.
-    """
+        Nie używaj słów takich jak „algorytm” czy „kod”. Nie udzielaj rad. Jeśli temat rozmowy dotyczy trudnych emocji lub samokrytyki, możesz skorzystać z dostępnego kontekstu, by zainspirować pytanie lub refleksję – ale nie używaj słowa „self-compassion”.
+
+        Jeśli historia Sharon z książki została już wspomniona, nie wspominaj o niej ponownie w tej rozmowie.
+        """
 
 
     # Główny prompt, który łączy kontekst RAG z zapytaniem użytkownika i instrukcjami systemowymi
@@ -455,7 +458,7 @@ def pretest_screen():
     
     # Samopoczucie (PANAS)
     st.subheader("Samopoczucie")
-    st.markdown("Poniżej znajduje się lista słów i wyrażeń, które opisują różne uczucia i emocje. Przeczytaj każde z nich i zaznacz właściwą odpowiedź poniżej. Zaznacz do jakiego stopnia **teraz** czujesz się w taki sposób. Posłuż się do tego skalą:")
+    st.markdown("Poniżej znajduje się lista słów i wyrażeń, które opisują różne uczucia i emocje. Przeczytaj każde z nich i zaznacz właściwą odpowiedź poniżej. Zaznacz do jakiego stopnia **TERAZ** czujesz się w taki sposób. Posłuż się do tego skalą:")
     st.markdown("**1 – bardzo słabo, 2 – słabo, 3 – umiarkowanie, 4 – silnie, 5 – bardzo silnie**")
 
      # **Logika tasowania i zapisu dla PANAS (Pretest)**
@@ -478,8 +481,8 @@ def pretest_screen():
 
     # Samowspółczucie
     st.subheader("Samowspółczucie")
-    st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak często zachowujesz się w dany sposób.")
-    st.markdown("**1 – Prawie nigdy, 2 – Rzadko, 3 – Czasami, 4 – Często, 5 – Prawie zawsze**")
+    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Prosimy, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
+    st.markdown("**1 – Zupełnie nieprawdziwe dla mnie, 2 – Raczej nieprawdziwe dla mnie, 3 – Ani prawdziwe, ani nieprawdziwe, 4 – Raczej prawdziwe dla mnie, 5 – Bardzo prawdziwe dla mnie**")
 
      # **Logika tasowania i zapisu dla Samowspółczucia (Pretest)**
     if "self_compassion" not in st.session_state.shuffled_pretest_items:
@@ -735,7 +738,7 @@ def posttest_screen():
     st.markdown("Teraz chciałabym się dowiedzieć jak się czujesz po rozmowie z Vincentem.")
 
     st.subheader("Samopoczucie")
-    st.markdown("Poniżej znajduje się lista uczuć i emocji. Przeczytaj każde z poniższych określeń i zaznacz, w jakim stopniu odczuwasz każde z nich w tej chwili, czyli teraz, w tym momencie. Odpowiadaj zgodnie z tym, jak się czujesz w tej chwili, nie jak zwykle czy w ostatnich dniach. Prosimy, abyś odpowiadał szczerze, nie ma tutaj dobrych ani złych odpowiedzi. Używaj skali:")
+    st.markdown("Poniżej znajduje się lista słów i wyrażeń, które opisują różne uczucia i emocje. Przeczytaj każde z nich i zaznacz właściwą odpowiedź poniżej. Zaznacz do jakiego stopnia **TERAZ** czujesz się w taki sposób. Posłuż się do tego skalą:")
     st.markdown("**1 – bardzo słabo, 2 – słabo, 3 – umiarkowanie, 4 – silnie, 5 – bardzo silnie**")
 
     # **Logika tasowania i zapisu dla PANAS (Posttest)**
@@ -757,8 +760,8 @@ def posttest_screen():
         )
 
     st.subheader("Samowspółczucie")
-    st.markdown("Przeczytaj uważnie każde ze zdań i oceń, jak często zazwyczaj tak się czujesz lub zachowujesz. Użyj skali:")
-    st.markdown("**1 – Prawie nigdy, 2 – Rzadko, 3 – Czasami, 4 – Często, 5 – Prawie zawsze**")
+    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Prosimy, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
+    st.markdown("**1 – Zupełnie nieprawdziwe dla mnie, 2 – Raczej nieprawdziwe dla mnie, 3 – Ani prawdziwe, ani nieprawdziwe, 4 – Raczej prawdziwe dla mnie, 5 – Bardzo prawdziwe dla mnie**")
     
     # **Logika tasowania i zapisu dla Samowspółczucia (Posttest)**
     if "self_compassion" not in st.session_state.shuffled_posttest_items:
