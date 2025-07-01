@@ -82,9 +82,17 @@ self_compassion_items = [
   
 ai_attitude_items = {
     "Sztuczna inteligencja uczyni ten świat lepszym miejscem.": "ai_1",
-    "Sztuczna inteligencja ma więcej wad niż zalet.": "ai_2",
-    "Sztuczna inteligencja oferuje rozwiązania wielu światowych problemów.": "ai_3",
-    "Sztuczna inteligencja raczej tworzy problemy niż je rozwiązuje.": "ai_4"
+    "Mam silne negatywne emocje w stosunku do sztucznej inteligencji.": "ai_2",
+    "Chcę korzystać z technologii opartych na sztucznej inteligencji.": "ai_3",
+    "Sztuczna inteligencja ma więcej wad niż zalet.": "ai_4",
+    "Z niecierpliwością czekam na przyszły rozwój sztucznej inteligencji.": "ai_5",
+    "Sztuczna inteligencja oferuje rozwiązania wielu światowych problemów.": "ai_6",
+    "Preferuję technologie, które nie zawierają sztucznej inteligencji.": "ai_7",
+    "Obawiam się sztucznej inteligencji.": "ai_8",
+    "Wybrałbym/wybrałabym raczej technologię ze sztuczną inteligencją niż bez niej.": "ai_9",
+    "Sztuczna inteligencja raczej tworzy problemy niż je rozwiązuje.": "ai_10",
+    "Kiedy myślę o sztucznej inteligencji, mam głównie pozytywne odczucia.": "ai_11",
+    "Raczej unikałbym/unikałabym technologii opartych na sztucznej inteligencji.": "ai_12"
 }
 
 # --- FUNKCJE POMOCNICZE ---
