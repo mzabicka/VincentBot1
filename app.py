@@ -732,7 +732,7 @@ def posttest_screen():
 
     with col_left_label:
         # Użyj span lub div, aby móc manipulować stylem, np. wyrównaniem tekstu
-        st.markdown(st.markdown('<p style="font-size: small; margin-top: 0; margin-bottom: 0;">0 - Bardzo złe samopoczucie</p>', unsafe_allow_html=True))
+        st.markdown(st.markdown("<p style='font-size: small; margin-top: 0; margin-bottom: 0;'>0 - Bardzo złe samopoczucie</p>", unsafe_allow_html=True))
 
     with col_slider:
         initial_wellbeing_post = st.session_state.get("post_wellbeing_vas", 50)
