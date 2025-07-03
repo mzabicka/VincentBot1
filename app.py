@@ -496,7 +496,7 @@ def pretest_screen():
     wellbeing_vas_pre = st.slider(
         min_value=0,
         max_value=100,
-        value=initial_wellbeing_pre,
+        value=50,
         key="wellbeing_vas_pre",
     )
 
