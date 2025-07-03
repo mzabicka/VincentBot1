@@ -484,17 +484,11 @@ def pretest_screen():
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
-    col_left, col_right = st.columns([1, 1])
-    with col_left:
-        st.markdown("0 - Bardzo złe samopoczucie")
-    with col_right:
-        st.markdown("100 - Bardzo dobre samopoczucie")
-
     # Suwak dla Visual Analog Scale
     # Zmienna do przechowywania wartości suwaka, z domyślną wartością None
     initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50) # Domyślnie na środku
     wellbeing_vas_pre = st.slider(
-        "Samopoczucie",
+        "0 - Bardzo złe samopoczucie, 100 - Bardzo dobre samopoczucie",
         min_value=0,
         max_value=100,
         value=initial_wellbeing_pre,
