@@ -463,23 +463,6 @@ def pretest_screen():
         key="demographics_education_select",
         index=0
     )
-    # Samopoczucie VAS
-    st.subheader("Samopoczucie")
-    st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
-
-    # Suwak dla Visual Analog Scale
-    # Zmienna do przechowywania wartości suwaka, z domyślną wartością None
-    initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50) # Domyślnie na środku
-    wellbeing_vas_pre = st.slider(
-        "Samopoczucie",
-        min_value=0,
-        max_value=100,
-        value=initial_wellbeing_pre,
-        key="wellbeing_vas_pre",
-        help="0 oznacza 'bardzo złe samopoczucie', a 100 'bardzo dobre samopoczucie'."
-    )
-    # Wyświetlanie wybranej wartości numerycznej
-    st.markdown(f"**Wybrana wartość:** {wellbeing_vas_pre}")
 
     # Postawa wobec AI
     st.subheader("Postawa wobec AI")
@@ -496,6 +479,26 @@ def pretest_screen():
             key=f"ai_pre_{key_name}",
             horizontal=True
         )
+
+    # Samopoczucie VAS
+    st.subheader("Samopoczucie")
+    st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
+
+    col_left, col_right = st.columns([1, 1])
+    with col_left:
+        st.markdown("0 - Bardzo złe samopoczucie")
+    with col_right:
+        st.markdown("100 - Bardzo dobre samopoczucie")
+        
+    # Suwak dla Visual Analog Scale
+    # Zmienna do przechowywania wartości suwaka, z domyślną wartością None
+    initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50) # Domyślnie na środku
+    wellbeing_vas_pre = st.slider(
+        min_value=0,
+        max_value=100,
+        value=initial_wellbeing_pre,
+        key="wellbeing_vas_pre",
+    )
 
     if st.button("Rozpocznij rozmowę z chatbotem", key="start_chat_from_pretest"): 
         # Walidacja danych demograficznych
@@ -714,16 +717,19 @@ def posttest_screen():
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
+    col_left, col_right = st.columns([1, 1])
+    with col_left:
+        st.markdown("0 - Bardzo złe samopoczucie")
+    with col_right:
+        st.markdown("100 - Bardzo dobre samopoczucie")
+
     initial_wellbeing_post = st.session_state.get("post_wellbeing_vas", 50)
     wellbeing_vas_post = st.slider(
-        "Samopoczucie",
         min_value=0,
         max_value=100,
         value=initial_wellbeing_post,
         key="wellbeing_vas_post",
-        help="0 oznacza 'bardzo złe samopoczucie', a 100 'bardzo dobre samopoczucie'."
     )
-    st.markdown(f"**Wybrana wartość:** {wellbeing_vas_post}")
 
     st.subheader("Samowspółczucie")
     st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak często zachowujesz się w dany sposób.""")
