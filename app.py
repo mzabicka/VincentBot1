@@ -722,7 +722,7 @@ def posttest_screen():
     st.title("Ankieta końcowa – po rozmowie z chatbotem")
     st.markdown("Teraz chciałabym się dowiedzieć jak się czujesz po rozmowie z Vincentem.")
 
-     # Samopoczucie VAS
+    # Samopoczucie VAS
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
@@ -748,7 +748,6 @@ def posttest_screen():
     with col_right_label:
         # Użyj div z wyrównaniem do prawej, aby tekst był blisko wartości 100
         st.markdown("<p style='font-size: small; text-align: right; margin-top: 0; margin-bottom: 0;'>100 - Bardzo dobre samopoczucie</p>", unsafe_allow_html=True)
-
 
     st.subheader("Samowspółczucie")
     st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak często zachowujesz się w dany sposób.""")
@@ -780,14 +779,12 @@ def posttest_screen():
         # Walidacja Samowspółczucie w postteście
         all_selfcomp_post_filled = all(value is not None for value in selfcomp_post.values())
 
-        if wellbeing_vas_post is None: # Bardziej dla formalności, bo slider zawsze ma wartość
-            st.warning("Proszę ocenić swoje samopoczucie na skali w ankiecie końcowej.")
-        elif not all_selfcomp_post_filled:
+        if not all_selfcomp_post_filled:
             st.warning("Proszę wypełnić wszystkie pytania dotyczące samowspółczucia w ankiecie końcowej.")
         else:
             # Zapisz odpowiedzi z post-testu do session_state
             st.session_state.posttest = {
-                "wellbeing_vas": wellbeing_vas_post, # Zapisz wartość z suwaka
+                "wellbeing_vas_post": wellbeing_vas_post, # Zapisz wartość z suwaka
                 "self_compassion": selfcomp_post,
                 "reflection": reflection
             }
