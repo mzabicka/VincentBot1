@@ -484,17 +484,29 @@ def pretest_screen():
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
-    # Suwak dla Visual Analog Scale
-    # Zmienna do przechowywania wartości suwaka, z domyślną wartością None
-    initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50) # Domyślnie na środku
-    wellbeing_vas_pre = st.slider(
-        "0 - Bardzo złe samopoczucie, 100 - Bardzo dobre samopoczucie",
-        min_value=0,
-        max_value=100,
-        value=initial_wellbeing_pre,
-        key="wellbeing_vas_pre",
+    # Utwórz trzy kolumny: lewy tekst, suwak, prawy tekst
+    # Dostosuj proporcje (np. [0.2, 0.6, 0.2]) w zależności od tego, jak szeroki ma być tekst i suwak
+    col_left_label, col_slider, col_right_label = st.columns([0.2, 0.6, 0.2])
 
-    )
+    with col_left_label:
+        # Użyj span lub div, aby móc manipulować stylem, np. wyrównaniem tekstu
+        st.markdown("<p style='font-size: small; margin-top: 0; margin-bottom: 0;'>0 - Bardzo złe samopoczucie</p>", unsafe_allow_html=True)
+
+    with col_slider:
+        initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50)
+        wellbeing_vas_pre = st.slider(
+            min_value=0,
+            max_value=100,
+            value=initial_wellbeing_pre,
+            key="wellbeing_vas_pre",
+            label="Ukryta etykieta suwaka", # Etykieta jest wymagana, ale ją ukryjemy
+            label_visibility="hidden" # Ukrywa domyślną etykietę powyżej suwaka
+        )
+
+    with col_right_label:
+        # Użyj div z wyrównaniem do prawej, aby tekst był blisko wartości 100
+        st.markdown("<p style='font-size: small; text-align: right; margin-top: 0; margin-bottom: 0;'>100 - Bardzo dobre samopoczucie</p>", unsafe_allow_html=True)
+
 
     if st.button("Rozpocznij rozmowę z chatbotem", key="start_chat_from_pretest"): 
         # Walidacja danych demograficznych
