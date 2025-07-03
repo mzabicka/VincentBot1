@@ -69,16 +69,14 @@ PDF_FILE_PATHS = [
 # Ścieżka do zapisanego indeksu FAISS
 FAISS_INDEX_PATH = "./faiss_vector_store_rag"
 
-# Elementy pytań do ankiet (PANAS, Samowspółczucie, Postawa wobec AI)
-panas_positive_items = ["Zainteresowany/a", "Zdecydowany/a", "Czujny/a", "Aktywny/a", "Entuzjastyczny/a"]
-panas_negative_items = ["Zaniepokojony/a", "Roztrzęsiony/a", "Zestresowany/a", "Nerwowy/a", "Obawiający/a się"]
+# Elementy pytań do ankiet (Samowspółczucie, Postawa wobec AI)
 self_compassion_items = [
-    "Daję sobie troskę i czułość, których potrzebuję.",
-    "Obsesyjnie skupiam się na wszystkim, co jest nie tak.",
-    "Przypominam sobie, że wiele innych osób na świecie czuje się tak samo jak ja.",
-    "Czuję się nietolerancyjny/a i niecierpliwy/a wobec siebie.",
-    "Utrzymuję właściwą perspektywę.",
-    "Czuję, że zmagam się z większymi trudnościami niż inni w tym momencie."]
+    "Staram się być wyrozumiały i cierpliwy w stosunku do tych aspektów mojej osoby, których nie lubię.",
+    "Kiedy przechodzę przez bardzo trudny okres, staram się być łagodny i troskliwy w stosunku do siebie.",
+    "Kiedy coś mnie denerwuje, staram się zachować równowagę emocjonalną.",
+    "Kiedy czuję się jakoś gorsza/gorszy, staram się pamiętać, że większość ludzi tak ma.",
+    "Jestem krytyczny i mało wyrozumiały wobec moich własnych wad i niedociągnięć.",
+    "Jestem nietolerancyjny i niecierpliwy wobec tych aspektów mojej osoby, których nie lubię."]
   
 ai_attitude_items = {
     "Sztuczna inteligencja uczyni ten świat lepszym miejscem.": "ai_1",
@@ -465,52 +463,23 @@ def pretest_screen():
         key="demographics_education_select",
         index=0
     )
-    
-    # Samopoczucie (PANAS)
+    # Samopoczucie VAS
     st.subheader("Samopoczucie")
-    st.markdown("Poniżej znajduje się lista słów i wyrażeń, które opisują różne uczucia i emocje. Przeczytaj każde z nich i zaznacz właściwą odpowiedź poniżej. Zaznacz do jakiego stopnia **TERAZ** czujesz się w taki sposób. Posłuż się do tego skalą:")
-    st.markdown("**1 – bardzo słabo, 2 – słabo, 3 – umiarkowanie, 4 – silnie, 5 – bardzo silnie**")
+    st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
-     # **Logika tasowania i zapisu dla PANAS (Pretest)**
-    if "panas" not in st.session_state.shuffled_pretest_items:
-        shuffled_panas_items_pre = panas_positive_items + panas_negative_items
-        random.shuffle(shuffled_panas_items_pre)
-        st.session_state.shuffled_pretest_items["panas"] = shuffled_panas_items_pre
-    else:
-        shuffled_panas_items_pre = st.session_state.shuffled_pretest_items["panas"]
-
-    panas_pre = {}
-    for item in shuffled_panas_items_pre:
-        panas_pre[item] = st.radio(
-            f"{item}",
-            options=[1, 2, 3, 4, 5],
-            index=None,
-            key=f"panas_pre_{item.replace(' ', '_')}",
-            horizontal=True 
-        )
-
-    # Samowspółczucie
-    st.subheader("Samowspółczucie")
-    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Proszę, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
-    st.markdown("**1 – Zupełnie nieprawdziwe dla mnie, 2 – Raczej nieprawdziwe dla mnie, 3 – Ani prawdziwe, ani nieprawdziwe, 4 – Raczej prawdziwe dla mnie, 5 – Bardzo prawdziwe dla mnie**")
-
-     # **Logika tasowania i zapisu dla Samowspółczucia (Pretest)**
-    if "self_compassion" not in st.session_state.shuffled_pretest_items:
-        shuffled_self_compassion_items_pre = list(self_compassion_items)
-        random.shuffle(shuffled_self_compassion_items_pre)
-        st.session_state.shuffled_pretest_items["self_compassion"] = shuffled_self_compassion_items_pre
-    else:
-        shuffled_self_compassion_items_pre = st.session_state.shuffled_pretest_items["self_compassion"]
-
-    selfcomp_pre = {}
-    for i, item in enumerate(shuffled_self_compassion_items_pre):
-        selfcomp_pre[f"SCS_{i+1}"] = st.radio(
-            item,
-            options=[1, 2, 3, 4, 5],
-            index=None, 
-            key=f"scs_pre_{i}",
-            horizontal=True
-        )
+    # Suwak dla Visual Analog Scale
+    # Zmienna do przechowywania wartości suwaka, z domyślną wartością None
+    initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50) # Domyślnie na środku
+    wellbeing_vas_pre = st.slider(
+        "Samopoczucie",
+        min_value=0,
+        max_value=100,
+        value=initial_wellbeing_pre,
+        key="wellbeing_vas_pre",
+        help="0 oznacza 'bardzo złe samopoczucie', a 100 'bardzo dobre samopoczucie'."
+    )
+    # Wyświetlanie wybranej wartości numerycznej
+    st.markdown(f"**Wybrana wartość:** {wellbeing_vas_pre}")
 
     # Postawa wobec AI
     st.subheader("Postawa wobec AI")
@@ -534,21 +503,13 @@ def pretest_screen():
                                   gender != "–– wybierz ––" and \
                                   education != "–– wybierz ––"
         
-        # Walidacja PANAS
-        all_panas_filled = all(value is not None for value in panas_pre.values())
-
-        # Walidacja Samowspółczucie
-        all_selfcomp_filled = all(value is not None for value in selfcomp_pre.values())
-
         # Walidacja Postawa wobec AI
         all_ai_attitudes_filled = all(value is not None for value in ai_attitudes.values())
         
         if not all_demographics_filled:
             st.warning("Proszę wypełnić wszystkie pola danych demograficznych.")
-        elif not all_panas_filled:
-            st.warning("Proszę wypełnić wszystkie pytania dotyczące samopoczucia.")
-        elif not all_selfcomp_filled:
-            st.warning("Proszę wypełnić wszystkie pytania dotyczące samowspółczucia.")
+        elif wellbeing_vas_pre is None: # Walidacja dla skali VAS
+            st.warning("Proszę ocenić swoje samopoczucie na skali.")
         elif not all_ai_attitudes_filled:
             st.warning("Proszę wypełnić wszystkie pytania dotyczące postawy wobec AI.")
         
@@ -560,8 +521,7 @@ def pretest_screen():
                 "education": education
             }
             st.session_state.pretest = {
-                "panas": panas_pre,
-                "self_compassion": selfcomp_pre,
+                "wellbeing_vas": wellbeing_vas_pre,
                 "ai_attitude": ai_attitudes
             }
 
@@ -584,13 +544,10 @@ def pretest_screen():
             for key, value in st.session_state.demographics.items():
                 data_to_save[f"demographics_{key}"] = value
             
-            # Dodaj dane z pretestu (panas, self_compassion, ai_attitude)
-            for section, items in st.session_state.pretest.items():
-                if isinstance(items, dict):
-                    for key, value in items.items():
-                        data_to_save[f"pre_{section}_{key}"] = value
-                else:
-                    data_to_save[f"pre_{section}"] = items
+            # Dodaj dane z pretestu (wellbeing_vas, ai_attitude)
+            data_to_save["pre_wellbeing_vas"] = st.session_state.pretest["wellbeing_vas"]
+            for key, value in st.session_state.pretest["ai_attitude"].items():
+                data_to_save[f"pre_ai_attitude_{key}"] = value
             
             save_to_sheets(data_to_save) 
 
@@ -748,30 +705,22 @@ def posttest_screen():
     st.markdown("Teraz chciałabym się dowiedzieć jak się czujesz po rozmowie z Vincentem.")
 
     st.subheader("Samopoczucie")
-    st.markdown("Poniżej znajduje się lista słów i wyrażeń, które opisują różne uczucia i emocje. Przeczytaj każde z nich i zaznacz właściwą odpowiedź poniżej. Zaznacz do jakiego stopnia **TERAZ** czujesz się w taki sposób. Posłuż się do tego skalą:")
-    st.markdown("**1 – bardzo słabo, 2 – słabo, 3 – umiarkowanie, 4 – silnie, 5 – bardzo silnie**")
+    st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
-    # **Logika tasowania i zapisu dla PANAS (Posttest)**
-    if "panas" not in st.session_state.shuffled_posttest_items:
-        shuffled_panas_items_post = panas_positive_items + panas_negative_items
-        random.shuffle(shuffled_panas_items_post)
-        st.session_state.shuffled_posttest_items["panas"] = shuffled_panas_items_post
-    else:
-        shuffled_panas_items_post = st.session_state.shuffled_posttest_items["panas"]
-
-    panas_post = {}
-    for item in shuffled_panas_items_post:
-        panas_post[item] = st.radio(
-            f"{item}",
-            options=[1, 2, 3, 4, 5],
-            index=None,
-            key=f"panas_post_{item.replace(' ', '_')}",
-            horizontal=True
-        )
+    initial_wellbeing_post = st.session_state.get("post_wellbeing_vas", 50)
+    wellbeing_vas_post = st.slider(
+        "Samopoczucie",
+        min_value=0,
+        max_value=100,
+        value=initial_wellbeing_post,
+        key="wellbeing_vas_post",
+        help="0 oznacza 'bardzo złe samopoczucie', a 100 'bardzo dobre samopoczucie'."
+    )
+    st.markdown(f"**Wybrana wartość:** {wellbeing_vas_post}")
 
     st.subheader("Samowspółczucie")
-    st.markdown("Pomyśl o sytuacji, z którą właśnie się mierzysz i która jest dla Ciebie bolesna lub trudna. Może to być jakieś wyzwanie w Twoim życiu lub poczucie, że nie radzisz sobie w określony sposób. Proszę, wskaż, na ile każde z poniższych zdań odpowiada temu, co czujesz wobec siebie w tej chwili, myśląc o tej sytuacji, korzystając z następującej skali:")
-    st.markdown("**1 – Zupełnie nieprawdziwe dla mnie, 2 – Raczej nieprawdziwe dla mnie, 3 – Ani prawdziwe, ani nieprawdziwe, 4 – Raczej prawdziwe dla mnie, 5 – Bardzo prawdziwe dla mnie**")
+    st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak często zachowujesz się w dany sposób.""")
+    st.markdown("**1 – Prawie nigdy, 2 – Raczej rzadko, 3 – Czasami, 4 – Raczej często, 5 – Prawie zawsze**")
     
     # **Logika tasowania i zapisu dla Samowspółczucia (Posttest)**
     if "self_compassion" not in st.session_state.shuffled_posttest_items:
@@ -795,22 +744,22 @@ def posttest_screen():
     reflection = st.text_area("Jak myślisz, o co chodziło w tym badaniu?")
 
     if st.button("Przejdź do podsumowania", key="submit_posttest"):
-        # Walidacja PANAS w postteście
-        all_panas_post_filled = all(value is not None for value in panas_post.values())
 
         # Walidacja Samowspółczucie w postteście
         all_selfcomp_post_filled = all(value is not None for value in selfcomp_post.values())
 
-        if not all_panas_post_filled:
-            st.warning("Proszę wypełnić wszystkie pytania dotyczące samopoczucia w ankiecie końcowej.")
+        if wellbeing_vas_post is None: # Bardziej dla formalności, bo slider zawsze ma wartość
+            st.warning("Proszę ocenić swoje samopoczucie na skali w ankiecie końcowej.")
         elif not all_selfcomp_post_filled:
             st.warning("Proszę wypełnić wszystkie pytania dotyczące samowspółczucia w ankiecie końcowej.")
         else:
             # Zapisz odpowiedzi z post-testu do session_state
             st.session_state.posttest = {
-                "panas": panas_post,
+                "wellbeing_vas": wellbeing_vas_post, # Zapisz wartość z suwaka
                 "self_compassion": selfcomp_post,
+                "reflection": reflection
             }
+
 
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
