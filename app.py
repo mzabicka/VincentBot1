@@ -545,10 +545,17 @@ def pretest_screen():
                 data_to_save[f"demographics_{key}"] = value
             
             # Dodaj dane z pretestu (wellbeing_vas, ai_attitude)
-            data_to_save["pre_wellbeing_vas"] = st.session_state.pretest["wellbeing_vas"]
-            for key, value in st.session_state.pretest["ai_attitude"].items():
-                data_to_save[f"pre_ai_attitude_{key}"] = value
+            for section, items in st.session_state.pretest.items():
+                if isinstance(items, dict):
+                    for key, value in items.items():
+                        data_to_save[f"pre_{section}_{key}"] = value
+                else:
+                    data_to_save[f"pre_{section}"] = items
             
+            save_to_sheets(data_to_save) 
+
+            st.session_state.page = "chat_instruction"
+            st.rerun()
             save_to_sheets(data_to_save) 
 
             st.session_state.page = "chat_instruction"
