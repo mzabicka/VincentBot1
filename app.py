@@ -735,12 +735,12 @@ def posttest_screen():
         st.markdown("<p style='font-size: small; margin-top: 0; margin-bottom: 0;'>0 - Bardzo złe samopoczucie</p>", unsafe_allow_html=True)
 
     with col_slider:
-        initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50)
-        wellbeing_vas_pre = st.slider(
+        initial_wellbeing_post = st.session_state.get("post_wellbeing_vas", 50)
+        wellbeing_vas_post = st.slider(
             min_value=0,
             max_value=100,
-            value=initial_wellbeing_pre,
-            key="wellbeing_vas_pre",
+            value=initial_wellbeing_post,
+            key="wellbeing_vas_post",
             label="Ukryta etykieta suwaka", # Etykieta jest wymagana, ale ją ukryjemy
             label_visibility="hidden" # Ukrywa domyślną etykietę powyżej suwaka
         )
