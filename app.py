@@ -749,24 +749,30 @@ def posttest_screen():
         # Użyj div z wyrównaniem do prawej, aby tekst był blisko wartości 100
         st.markdown("<p style='font-size: small; text-align: right; margin-top: 0; margin-bottom: 0;'>100 - Bardzo dobre samopoczucie</p>", unsafe_allow_html=True)
 
+
     st.subheader("Samowspółczucie")
     st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak często zachowujesz się w dany sposób.""")
     st.markdown("**1 – Prawie nigdy, 2 – Raczej rzadko, 3 – Czasami, 4 – Raczej często, 5 – Prawie zawsze**")
-    
+
     # **Logika tasowania i zapisu dla Samowspółczucia (Posttest)**
+    # Upewnij się, że st.session_state.shuffled_posttest_items jest zainicjowane jako słownik np. w głównej funkcji main()
+    if "shuffled_posttest_items" not in st.session_state:
+        st.session_state.shuffled_posttest_items = {}
+
     if "self_compassion" not in st.session_state.shuffled_posttest_items:
+        # Pamiętaj, że self_compassion_items musi być zdefiniowaną listą pytań
         shuffled_self_compassion_items_post = list(self_compassion_items)
         random.shuffle(shuffled_self_compassion_items_post)
         st.session_state.shuffled_posttest_items["self_compassion"] = shuffled_self_compassion_items_post
     else:
         shuffled_self_compassion_items_post = st.session_state.shuffled_posttest_items["self_compassion"]
-    
+
     selfcomp_post = {}
     for i, item in enumerate(shuffled_self_compassion_items_post):
         selfcomp_post[f"SCS_{i+1}"] = st.radio(
             item,
             options=[1, 2, 3, 4, 5],
-            index=None, 
+            index=None,
             key=f"scs_post_{i}",
             horizontal=True
         )
@@ -779,12 +785,14 @@ def posttest_screen():
         # Walidacja Samowspółczucie w postteście
         all_selfcomp_post_filled = all(value is not None for value in selfcomp_post.values())
 
-        if not all_selfcomp_post_filled:
+        if wellbeing_vas_post is None: # Bardziej dla formalności, bo slider zawsze ma wartość
+            st.warning("Proszę ocenić swoje samopoczucie na skali w ankiecie końcowej.")
+        elif not all_selfcomp_post_filled:
             st.warning("Proszę wypełnić wszystkie pytania dotyczące samowspółczucia w ankiecie końcowej.")
         else:
             # Zapisz odpowiedzi z post-testu do session_state
             st.session_state.posttest = {
-                "wellbeing_vas_post": wellbeing_vas_post, # Zapisz wartość z suwaka
+                "wellbeing_vas": wellbeing_vas_post, # Zapisz wartość z suwaka
                 "self_compassion": selfcomp_post,
                 "reflection": reflection
             }
@@ -803,8 +811,8 @@ def posttest_screen():
                 "timestamp_start": st.session_state.get("timestamp_start_initial"),
                 "timestamp_pretest_end": st.session_state.get("pretest_timestamp"),
                 "timestamp_chat_end": st.session_state.get("chat_timestamp"),
-                "timestamp_posttest_end": timestamp, 
-                "status": "ukończono_posttest" 
+                "timestamp_posttest_end": timestamp,
+                "status": "ukończono_posttest"
             }
 
             # Dodaj dane demograficzne, jeśli już są
@@ -820,13 +828,19 @@ def posttest_screen():
                         data_to_save[f"pre_{section}_{key}"] = value
                 else:
                     data_to_save[f"pre_{section}"] = items
-            
+
             # Dodaj log rozmowy z chatu, jeśli już jest
             conversation_string = ""
             if "chat_history" in st.session_state:
                 for msg in st.session_state.chat_history:
-                    conversation_string += f"{msg['role'].capitalize()}: {msg['content']}\n"
+                    # Zakładamy, że msg to słownik z kluczami 'role' i 'content'
+                    if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
+                        conversation_string += f"{msg['role'].capitalize()}: {msg['content']}\n"
+                    else:
+                        # Obsługa przypadku, gdy msg nie jest oczekiwanym słownikiem
+                        conversation_string += f"Nieznany format wiadomości: {msg}\n"
             data_to_save["conversation_log"] = conversation_string.strip()
+
 
             # Dodaj dane z posttestu
             posttest_data = st.session_state.get("posttest", {})
@@ -837,7 +851,7 @@ def posttest_screen():
                 else:
                     data_to_save[f"post_{section}"] = items
 
-            save_to_sheets(data_to_save) 
+            save_to_sheets(data_to_save)
 
             st.session_state.page = "thankyou"
             st.rerun()
