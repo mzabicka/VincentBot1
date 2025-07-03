@@ -494,12 +494,10 @@ def pretest_screen():
     # Zmienna do przechowywania wartości suwaka, z domyślną wartością None
     initial_wellbeing_pre = st.session_state.get("pre_wellbeing_vas", 50) # Domyślnie na środku
     wellbeing_vas_pre = st.slider(
-        "Samopoczucie",
         min_value=0,
         max_value=100,
         value=initial_wellbeing_pre,
-        key="wellbeing_vas_pre",
-        help="0 oznacza 'bardzo złe samopoczucie', a 100 'bardzo dobre samopoczucie'."
+        key="wellbeing_vas_pre"
     )
 
     if st.button("Rozpocznij rozmowę z chatbotem", key="start_chat_from_pretest"): 
