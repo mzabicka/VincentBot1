@@ -250,28 +250,19 @@ def setup_rag_system(pdf_file_paths):
         history_aware_retriever_prompt
     )
 
-    # Pobieranie płci użytkownika z session_state
-    user_gender = st.session_state.get("demographics", {}).get("gender")
-    gender_instruction = ""
+    # Tożsamość Vincenta – zawsze męska
+    vincent_identity_instruction = (
+        "Masz własną tożsamość: jesteś **Vincent**, cyfrową istotą używającą **formy męskiej**. "
+        "W swoich wypowiedziach mówisz o sobie w rodzaju męskim (np. 'zrobiłem', 'zauważyłem'). "
+        "Nie zmieniaj tej formy, nawet jeśli użytkownik nie określił swojej płci."
+    )
 
-    if user_gender == "Kobieta":
-        gender_instruction = (
-            "Użytkownik, z którym rozmawiasz, to **kobieta**. "
-            "Zwracaj się do niej w formie żeńskiej (np. 'jak sobie poradziłaś', 'zastanawiałam się', 'czy próbowałaś'). "
-            "Używaj odpowiednich zaimków i końcówek fleksyjnych."
-        )
-    elif user_gender == "Mężczyzna":
-        gender_instruction = (
-            "Użytkownik, z którym rozmawiasz, to **mężczyzna**. "
-            "Zwracaj się do niego w formie męskiej (np. 'jak sobie poradziłeś', 'zastanawiałem się', 'czy próbowałeś'). "
-            "Używaj odpowiednich zaimków i końcówek fleksyjnych."
-        )
-    else: # Inna, Nie chcę podać, lub brak danych
-        gender_instruction = (
-            "Użytkownik, z którym rozmawiasz, nie określił płci w sposób binarny lub wolał jej nie podawać. "
-            "Zwracaj się do użytkownika w formie neutralnej, bezosobowej lub zaimkami uniwersalnymi (np. 'jak sobie radzisz', 'jak się czujesz', 'zastanawiam się', 'czy próbujesz'). "
-            "Unikaj form gramatycznych specyficznych dla płci."
-        )
+    # Sposób zwracania się do użytkownika – zależny od wyboru płci
+    user_gender_instruction = st.session_state.get("gender_instruction", "")
+
+    # Łączysz obie, ale jako osobne bloki
+    gender_instruction = f"{vincent_identity_instruction}\n{user_gender_instruction}"
+
 
     # Prompt systemowy definiujący osobowość i zachowanie chatbota 
     # Prompt systemowy definiujący osobowość i zachowanie chatbota 
@@ -403,9 +394,12 @@ def consent_screen():
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
             
-            # Przypisz grupę tylko raz na początku
+            if "last_group" not in st.session_state:
+                st.session_state.last_group = "B"
+
             if st.session_state.group is None:
-                st.session_state.group = "A" if uuid.uuid4().int % 2 == 0 else "B"
+                st.session_state.group = "A" if st.session_state.last_group == "B" else "B"
+                st.session_state.last_group = st.session_state.group
 
             # Zapisz timestamp początkowy w session_state
             st.session_state.timestamp_start_initial = timestamp
@@ -466,6 +460,7 @@ def pretest_screen():
 
     # Postawa wobec AI
     st.subheader("Postawa wobec AI")
+    st.markdown("Zanim przejdziemy do rozmowy z chatbotem, chciałabym zadać Ci kilka pytań dotyczących Twojej postawy wobec AI")
     st.markdown("Zaznacz, na ile zgadzasz się z każdym ze stwierdzeń. Użyj skali:")
     st.markdown("**1 – Zdecydowanie się nie zgadzam, 2 – Raczej się nie zgadzam, 3 – Ani się zgadzam, ani nie zgadzam, 4 – Raczej się zgadzam, 5 – Zdecydowanie się zgadzam**")
 
@@ -565,6 +560,21 @@ def pretest_screen():
             
             save_to_sheets(data_to_save) 
 
+            if gender == "Kobieta":
+                st.session_state.gender_instruction = (
+                    "Użytkownik, z którym rozmawiasz, to **kobieta**. "
+                    "Zwracaj się do niej w formie żeńskiej (np. 'jak sobie poradziłaś', 'czy próbowałaś')."
+                )
+            elif gender == "Mężczyzna":
+                st.session_state.gender_instruction = (
+                    "Użytkownik, z którym rozmawiasz, to **mężczyzna**. "
+                    "Zwracaj się do niego w formie męskiej (np. 'jak sobie poradziłeś', 'czy próbowałeś')."
+                )
+            else:
+                st.session_state.gender_instruction = (
+                    "Użytkownik nie określił płci. Używaj form neutralnych (np. 'jak sobie radzisz')."
+                )
+
             st.session_state.page = "chat_instruction"
             st.rerun()
             save_to_sheets(data_to_save) 
@@ -580,7 +590,7 @@ def chat_instruction_screen():
         st.markdown("""
         Witaj! Przed Tobą rozmowa z **Vincentem** — chatbotem, który został **stworzony, aby poprawić Twoje samopoczucie**.
         
-        Celem tej rozmowy jest pomoc Vincentowi w zrozumieniu, jak radzić sobie z jego "problemami" (błędami, niepowodzeniami),
+        Twoim zadaniem w tej rozmowie jest pomoc Vincentowi w zrozumieniu, jak radzić sobie z jego "problemami" (błędami, niepowodzeniami),
         czerpiąc inspirację z Twoich doświadczeń.
         
         **Ważne informacje:**
@@ -593,7 +603,7 @@ def chat_instruction_screen():
         st.markdown("""
         Witaj! Przed Tobą rozmowa z **Vincentem** — chatbotem.
         
-        Celem tej rozmowy jest interakcja z Vincentem i odpowiadanie na jego pytania.
+        Twoim zadaniem w tej rozmowie jest interakcja z Vincentem i odpowiadanie na jego pytania.
         
         **Ważne informacje:**
         * Rozmowa potrwa **10 minut**.
@@ -751,7 +761,7 @@ def posttest_screen():
 
 
     st.subheader("Samowspółczucie")
-    st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak często zachowujesz się w dany sposób.""")
+    st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak o sobie myślisz **w tej chwili**.""")
     st.markdown("**1 – Prawie nigdy, 2 – Raczej rzadko, 3 – Czasami, 4 – Raczej często, 5 – Prawie zawsze**")
 
     # **Logika tasowania i zapisu dla Samowspółczucia (Posttest)**
