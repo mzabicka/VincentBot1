@@ -211,7 +211,6 @@ def save_to_sheets(data_dict):
         print(f"Krytyczny błąd podczas zapisu danych do Google Sheets: {e}")
 
 # --- FUNKCJE RAG (Retrieval Augmented Generation) ---
-@st.cache_resource(show_spinner=False)
 def setup_rag_system(pdf_file_paths):
     """
     Konfiguruje system RAG, ładując indeks FAISS i model LLM.
