@@ -583,10 +583,6 @@ def pretest_screen():
 
             st.session_state.page = "chat_instruction"
             st.rerun()
-            save_to_sheets(data_to_save) 
-
-            st.session_state.page = "chat_instruction"
-            st.rerun()
 
 # Ekran: Instrukcja przed chatem
 def chat_instruction_screen():
