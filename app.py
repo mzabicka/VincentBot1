@@ -95,13 +95,6 @@ ai_attitude_items = {
 
 # --- FUNKCJE POMOCNICZE ---
 def save_to_sheets(data_dict):
-    """
-    Akumuluje i zapisuje słownik danych do Google Sheets w jednym wierszu dla danego user_id.
-    Dodaje nowe kolumny, jeśli brakuje ich w arkuszu, BEZ CZYSZCZENIA istniejących danych.
-    Jeśli user_id już istnieje, wiersz jest aktualizowany o nowe dane,
-    zachowując istniejące, jeśli nie zostały przesłane nowe wartości.
-    Jeśli user_id nie istnieje, tworzony jest nowy wiersz.
-    """
 
     sheet = get_sheet()
 
@@ -112,10 +105,9 @@ def save_to_sheets(data_dict):
         return
 
     try:
-        current_headers = sheet.row_values(1) # Pobierz nagłówki z pierwszej kolumny
+        current_headers = sheet.row_values(1) 
         
-        # Stwórz listę wszystkich POTENCJALNYCH nagłówków, które powinny być w arkuszu
-        # Zaczynamy od obecnych nagłówków, potem dodajemy te z data_dict, których jeszcze nie ma.
+        # Stwórz listę wszystkich potencjalnych nagłówków, które powinny być w arkuszu
         all_potential_headers = list(current_headers)
         for key in data_dict.keys():
             if key not in all_potential_headers:
@@ -125,29 +117,21 @@ def save_to_sheets(data_dict):
         if not current_headers:
             sheet.insert_row(all_potential_headers, 1)
             print(f"Początkowe nagłówki ustawione: {all_potential_headers}")
-            current_headers = all_potential_headers # Uaktualnij nagłówki po wstawieniu
+            current_headers = all_potential_headers 
         else:
             # Sprawdź, czy brakuje jakichś nagłówków z data_dict w obecnych nagłówkach arkusza
             headers_to_add = [h for h in all_potential_headers if h not in current_headers]
             
             if headers_to_add:
-                # Dodaj brakujące kolumny na koniec arkusza
-                # W gspread najbezpieczniej to zrobić, wstawiając nową listę nagłówków do 1. wiersza
-                # Zostawiamy istniejące dane w spokoju, tylko nagłówki się przesuwają
+                all_records = sheet.get_all_records() 
                 
-                # Pobieramy wszystkie dane z arkusza (oprócz nagłówków)
-                all_records = sheet.get_all_records() # Pobiera dane jako listę słowników
-                
-                # Czyścimy arkusz TYLKO RAZ, żeby wstawić zaktualizowane nagłówki
-                # Jest to bezpieczne, bo wcześniej pobraliśmy wszystkie dane
+                # Wyczyść arkusz tylko raz, żeby wstawić zaktualizowane nagłówki
                 sheet.clear() 
-                sheet.insert_row(all_potential_headers, 1) # Wstawiamy zaktualizowane nagłówki
+                sheet.insert_row(all_potential_headers, 1) 
                 print(f"Nagłówki arkusza zaktualizowane. Dodano: {headers_to_add}")
                 
-                # Wstawiamy z powrotem wszystkie poprzednie dane (jeśli jakieś były)
+                # Wstaw z powrotem wszystkie poprzednie dane 
                 if all_records:
-                    # Konwertujemy listę słowników z powrotem na listę list,
-                    # upewniając się, że kolejność kolumn jest zgodna z nowymi nagłówkami
                     rows_to_insert = []
                     for record in all_records:
                         row = [str(record.get(h, "")) for h in all_potential_headers]
@@ -155,27 +139,21 @@ def save_to_sheets(data_dict):
                     sheet.append_rows(rows_to_insert)
                     print(f"Wstawiono ponownie {len(rows_to_insert)} wierszy danych.")
 
-                current_headers = all_potential_headers # Uaktualnij nagłówki po wstawieniu
+                current_headers = all_potential_headers 
 
-        # 2. Znajdź wiersz użytkownika lub dodaj nowy
+        # Znajdź wiersz użytkownika lub dodaj nowy
         user_ids_in_sheet = []
         user_id_col_index = -1
         
         if "user_id" in current_headers:
             user_id_col_index = current_headers.index("user_id") + 1
-            # sheet.col_values(user_id_col_index) zwróci listę wartości z kolumny user_id
-            # [1:] pomija nagłówek
-            # Jeśli kolumna jest pusta (oprócz nagłówka), user_ids_in_sheet będzie pusta
             user_ids_in_sheet = sheet.col_values(user_id_col_index)[1:] 
         else:
-            # Jeśli kolumna 'user_id' w ogóle nie istnieje, to znaczy, że arkusz jest nowy
-            # lub został właśnie wyczyszczony i nagłówki zostały wstawione.
-            # W tym przypadku, user_id_col_index pozostaje -1, a nowy wiersz zostanie dodany.
             print("Kolumna 'user_id' nie znaleziona. Zostanie dodany nowy wiersz.")
 
         row_index = -1
         if user_id_col_index != -1 and user_id in user_ids_in_sheet:
-            row_index = user_ids_in_sheet.index(user_id) + 2 # +1 dla nagłówka, +1 bo lista jest 0-bazowa
+            row_index = user_ids_in_sheet.index(user_id) + 2 
         
         if row_index != -1:
             # Użytkownik istnieje, pobierz jego obecne dane
@@ -187,9 +165,9 @@ def save_to_sheets(data_dict):
                 if i < len(existing_row_values):
                     existing_data_map[header] = existing_row_values[i]
                 else:
-                    existing_data_map[header] = "" # Uzupełnij puste dla nowo dodanych kolumn (jeśli dodano nowe kolumny, a ten wiersz był już wcześniej)
+                    existing_data_map[header] = "" 
 
-            # Scal nowe dane z istniejącymi (nowe nadpisują stare dla tych samych kluczy, reszta zostaje)
+            # Scal nowe dane z istniejącymi 
             merged_data = {**existing_data_map, **data_dict}
             
             # Przygotuj wiersz do aktualizacji w prawidłowej kolejności nagłówków
@@ -198,7 +176,6 @@ def save_to_sheets(data_dict):
             print(f"Dane dla user_id {user_id} zaktualizowane w Google Sheets pomyślnie w wierszu {row_index}.")
         else:
             # Użytkownik nie istnieje, dodaj nowy wiersz
-            # Upewnij się, że dodajesz wartości w kolejności current_headers
             new_row_values = [str(data_dict.get(header, "")) for header in current_headers]
             sheet.append_row(new_row_values)
             print(f"Nowe dane dla user_id {user_id} dodane do Google Sheets pomyślnie (nowy wiersz).")
@@ -214,7 +191,7 @@ def save_to_sheets(data_dict):
 
 @st.cache_resource(show_spinner=False)
 def load_resources(PDF_FILE_PATHS):
-    # ładowanie FAISS + modelu LLM, bez żadnych promptów
+    # ładowanie FAISS + modelu LLM
     if os.path.exists(FAISS_INDEX_PATH):
         embedding_model = HuggingFaceEmbeddings(
             model_name='all-MiniLM-L6-v2',
@@ -262,7 +239,7 @@ def setup_rag_system(PDF_FILE_PATHS, user_gender_instruction):
     # Sposób zwracania się do użytkownika – zależny od wyboru płci
     user_gender_instruction = st.session_state.get("gender_instruction", "")
 
-    # Łączysz obie, ale jako osobne bloki
+    # Połączenie tych dwóch
     gender_instruction = f"{vincent_identity_instruction}\n{user_gender_instruction}"
 
     # Prompt systemowy definiujący osobowość i zachowanie chatbota 
@@ -322,8 +299,6 @@ def setup_rag_system(PDF_FILE_PATHS, user_gender_instruction):
         Jeśli historia Sharon z książki została już wspomniona, nie wspominaj o niej ponownie w tej rozmowie.
         """
 
-
-
     # Główny prompt, który łączy kontekst RAG z zapytaniem użytkownika i instrukcjami systemowymi
     Youtubeing_prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
@@ -338,7 +313,6 @@ def setup_rag_system(PDF_FILE_PATHS, user_gender_instruction):
     retrieval_chain = create_retrieval_chain(history_aware_retriever, document_chain)
     return retrieval_chain
 
-
 # Unikalny ID użytkownika (losowany przy wejściu)
 if "user_id" not in st.session_state:
     st.session_state.user_id = str(uuid.uuid4())
@@ -346,8 +320,6 @@ if "user_id" not in st.session_state:
     st.session_state.chat_history = []
     st.session_state.shuffled_pretest_items = {}
     st.session_state.shuffled_posttest_items = {}
-
-
 
 # --- EKRANY APLIKACJI STREAMLIT ---
 
@@ -394,8 +366,7 @@ def consent_screen():
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
         
-
-            # ——— NAPRZEMIENNY PRZYDZIAŁ GRUPY ———
+            # Naprzemienny przydział grupy
             sheet = get_sheet()
             headers = sheet.row_values(1)
             try:
@@ -404,11 +375,9 @@ def consent_screen():
             except ValueError:
                 existing = []
 
-            n = len(existing)  # ile już jest wpisów
+            n = len(existing) 
             st.session_state.group = "A" if n % 2 == 0 else "B"
 
-
-            # Zapisz timestamp początkowy w session_state
             st.session_state.timestamp_start_initial = timestamp
 
             data_to_save = {
@@ -485,12 +454,9 @@ def pretest_screen():
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
-    # Utwórz trzy kolumny: lewy tekst, suwak, prawy tekst
-    # Dostosuj proporcje (np. [0.2, 0.6, 0.2]) w zależności od tego, jak szeroki ma być tekst i suwak
     col_left_label, col_slider, col_right_label = st.columns([0.2, 0.6, 0.2])
 
     with col_left_label:
-        # Użyj span lub div, aby móc manipulować stylem, np. wyrównaniem tekstu
         st.markdown("<p style='font-size: small; margin-top: 0; margin-bottom: 0;'>0 - Bardzo złe samopoczucie</p>", unsafe_allow_html=True)
 
     with col_slider:
@@ -500,12 +466,11 @@ def pretest_screen():
             max_value=100,
             value=initial_wellbeing_pre,
             key="wellbeing_vas_pre",
-            label="Ukryta etykieta suwaka", # Etykieta jest wymagana, ale ją ukryjemy
-            label_visibility="hidden" # Ukrywa domyślną etykietę powyżej suwaka
+            label="Ukryta etykieta suwaka", 
+            label_visibility="hidden" 
         )
 
     with col_right_label:
-        # Użyj div z wyrównaniem do prawej, aby tekst był blisko wartości 100
         st.markdown("<p style='font-size: small; text-align: right; margin-top: 0; margin-bottom: 0;'>100 - Bardzo dobre samopoczucie</p>", unsafe_allow_html=True)
 
 
@@ -540,10 +505,8 @@ def pretest_screen():
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
 
-            # Zapisz timestamp zakończenia pre-testu w session_state
             st.session_state.pretest_timestamp = timestamp
 
-            # Przygotuj płaski słownik ze WSZYSTKIMI danymi z session_state + nowym statusem
             data_to_save = {
                 "user_id": st.session_state.user_id,
                 "group": st.session_state.group, 
@@ -702,7 +665,7 @@ def chat_screen():
             for msg in st.session_state.chat_history:
                 conversation_string += f"{msg['role'].capitalize()}: {msg['content']}\n"
 
-            # Zbierz WSZYSTKIE dotychczas zebrane dane z session_state
+            # Zbierz wszystkie dotychczas zebrane dane z session_state
             data_to_save = {
                 "user_id": st.session_state.user_id,
                 "group": st.session_state.group,
@@ -743,12 +706,9 @@ def posttest_screen():
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
-    # Utwórz trzy kolumny: lewy tekst, suwak, prawy tekst
-    # Dostosuj proporcje (np. [0.2, 0.6, 0.2]) w zależności od tego, jak szeroki ma być tekst i suwak
     col_left_label, col_slider, col_right_label = st.columns([0.2, 0.6, 0.2])
 
     with col_left_label:
-        # Użyj span lub div, aby móc manipulować stylem, np. wyrównaniem tekstu
         st.markdown("<p style='font-size: small; margin-top: 0; margin-bottom: 0;'>0 - Bardzo złe samopoczucie</p>", unsafe_allow_html=True)
 
     with col_slider:
@@ -758,12 +718,11 @@ def posttest_screen():
             max_value=100,
             value=initial_wellbeing_post,
             key="wellbeing_vas_post",
-            label="Ukryta etykieta suwaka", # Etykieta jest wymagana, ale ją ukryjemy
-            label_visibility="hidden" # Ukrywa domyślną etykietę powyżej suwaka
+            label="Ukryta etykieta suwaka", 
+            label_visibility="hidden" 
         )
 
     with col_right_label:
-        # Użyj div z wyrównaniem do prawej, aby tekst był blisko wartości 100
         st.markdown("<p style='font-size: small; text-align: right; margin-top: 0; margin-bottom: 0;'>100 - Bardzo dobre samopoczucie</p>", unsafe_allow_html=True)
 
 
@@ -771,21 +730,10 @@ def posttest_screen():
     st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak o sobie myślisz **w tej chwili**.""")
     st.markdown("**1 – Prawie nigdy, 2 – Raczej rzadko, 3 – Czasami, 4 – Raczej często, 5 – Prawie zawsze**")
 
-    # **Logika tasowania i zapisu dla Samowspółczucia (Posttest)**
-    # Upewnij się, że st.session_state.shuffled_posttest_items jest zainicjowane jako słownik np. w głównej funkcji main()
-    if "shuffled_posttest_items" not in st.session_state:
-        st.session_state.shuffled_posttest_items = {}
-
-    if "self_compassion" not in st.session_state.shuffled_posttest_items:
-        # Pamiętaj, że self_compassion_items musi być zdefiniowaną listą pytań
-        shuffled_self_compassion_items_post = list(self_compassion_items)
-        random.shuffle(shuffled_self_compassion_items_post)
-        st.session_state.shuffled_posttest_items["self_compassion"] = shuffled_self_compassion_items_post
-    else:
-        shuffled_self_compassion_items_post = st.session_state.shuffled_posttest_items["self_compassion"]
-
+    self_compassion_items_post = self_compassion_items
+    
     selfcomp_post = {}
-    for i, item in enumerate(shuffled_self_compassion_items_post):
+    for i, item in enumerate(self_compassion_items_post):
         selfcomp_post[f"SCS_{i+1}"] = st.radio(
             item,
             options=[1, 2, 3, 4, 5],
@@ -802,7 +750,7 @@ def posttest_screen():
         # Walidacja Samowspółczucie w postteście
         all_selfcomp_post_filled = all(value is not None for value in selfcomp_post.values())
 
-        if wellbeing_vas_post is None: # Bardziej dla formalności, bo slider zawsze ma wartość
+        if wellbeing_vas_post is None:
             st.warning("Proszę ocenić swoje samopoczucie na skali w ankiecie końcowej.")
         elif not all_selfcomp_post_filled:
             st.warning("Proszę wypełnić wszystkie pytania dotyczące samowspółczucia w ankiecie końcowej.")
@@ -813,7 +761,6 @@ def posttest_screen():
                 "self_compassion": selfcomp_post,
                 "reflection": reflection
             }
-
 
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
@@ -857,7 +804,6 @@ def posttest_screen():
                         # Obsługa przypadku, gdy msg nie jest oczekiwanym słownikiem
                         conversation_string += f"Nieznany format wiadomości: {msg}\n"
             data_to_save["conversation_log"] = conversation_string.strip()
-
 
             # Dodaj dane z posttestu
             posttest_data = st.session_state.get("posttest", {})
@@ -911,11 +857,8 @@ def thankyou_screen():
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
 
-            # Zapisz timestamp wysłania feedbacku w session_state
             st.session_state.feedback_timestamp = timestamp
 
-            # Zapiszemy TYLKO feedback i zaktualizujemy status końcowy.
-            # Wszystkie poprzednie dane (z pretestu, chatu, posttestu) SĄ JUŻ ZAPISANE.
             data_to_save = {
                 "user_id": st.session_state.user_id,
                 "timestamp_feedback_submit": timestamp,
