@@ -211,8 +211,10 @@ def save_to_sheets(data_dict):
         print(f"Krytyczny błąd podczas zapisu danych do Google Sheets: {e}")
 
 # --- FUNKCJE RAG (Retrieval Augmented Generation) ---
-def setup_rag_system(pdf_file_paths):
 
+@st.cache_resource(show_spinner=False)
+def load_resources(PDF_FILE_PATHS):
+    # ładowanie FAISS + modelu LLM, bez żadnych promptów
     if os.path.exists(FAISS_INDEX_PATH):
         embedding_model = HuggingFaceEmbeddings(
             model_name='all-MiniLM-L6-v2',
@@ -220,15 +222,20 @@ def setup_rag_system(pdf_file_paths):
         )
         vector_store = FAISS.load_local(FAISS_INDEX_PATH, embedding_model, allow_dangerous_deserialization=True)
     else:
-        st.error("Błąd: Indeks FAISS nie został znaleziony! Uruchom najpierw skrypt 'prepare_rag_data.py'.")
+        st.error("Brak indeksu FAISS – uruchom prepare_rag_data.py")
         st.stop()
-
+        
     chat = ChatOpenAI(
         temperature=0.0,
         model_name="openai/gpt-4o-mini",
         openai_api_key=api_key,
         base_url="https://openrouter.ai/api/v1"
     )
+    return vector_store, chat
+
+def setup_rag_system(PDF_FILE_PATHS, user_gender_instruction):
+
+    vector_store, chat = load_resources(PDF_FILE_PATHS)
 
     # Prompt dla retrivera, który generuje zapytanie do bazy wiedzy na podstawie historii rozmowy
     history_aware_retriever_prompt = ChatPromptTemplate.from_messages([
@@ -619,9 +626,10 @@ def chat_screen():
     st.title("Rozmowa z Vincentem")
 
     # Ładowanie systemu RAG przy pierwszym wejściu na stronę chatu
-    if st.session_state.rag_chain is None:
+    if (st.session_state.rag_chain is None or st.session_state.last_gender_instr != st.session_state.gender_instruction):
         with st.spinner("Przygotowuję bazę wiedzy... Proszę czekać cierpliwie. To może zająć kilka minut przy pierwszym uruchomieniu."):
-            st.session_state.rag_chain = setup_rag_system(PDF_FILE_PATHS)
+            st.session_state.rag_chain = setup_rag_system(PDF_FILE_PATHS, st.session_state.gender_instruction)
+    st.session_state.last_gender_instr = st.session_state.gender_instruction
 
     # Inicjalizacja czasu rozpoczęcia rozmowy, jeśli jeszcze nie ustawiony
     if "start_time" not in st.session_state or st.session_state.start_time is None:
