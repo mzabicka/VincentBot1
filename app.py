@@ -394,12 +394,20 @@ def consent_screen():
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
             
-            if "last_group" not in st.session_state:
-                st.session_state.last_group = "B"
+            # ——— GLOBALNY PRZYDZIAŁ GRUPY ———
+            # Pobierz wszystkie dotychczasowe wartości kolumny "group" z arkusza
+            sheet = get_sheet()
+            headers = sheet.row_values(1)
+            try:
+                col_idx = headers.index("group") + 1
+                existing = sheet.col_values(col_idx)[1:]  # pomijamy nagłówek
+            except ValueError:
+                existing = []  # jeśli kolumna nie istnieje jeszcze
 
-            if st.session_state.group is None:
-                st.session_state.group = "A" if st.session_state.last_group == "B" else "B"
-                st.session_state.last_group = st.session_state.group
+            count_A = existing.count("A")
+            count_B = existing.count("B")
+            # Jeśli jest mniej lub tyle samo A co B → przydzielamy A, inaczej B
+            st.session_state.group = "A" if count_A <= count_B else "B"
 
             # Zapisz timestamp początkowy w session_state
             st.session_state.timestamp_start_initial = timestamp
@@ -460,8 +468,7 @@ def pretest_screen():
 
     # Postawa wobec AI
     st.subheader("Postawa wobec AI")
-    st.markdown("Zanim przejdziemy do rozmowy z chatbotem, chciałabym zadać Ci kilka pytań dotyczących Twojej postawy wobec AI")
-    st.markdown("Zaznacz, na ile zgadzasz się z każdym ze stwierdzeń. Użyj skali:")
+    st.markdown("Zanim przejdziemy do rozmowy z chatbotem, chciałabym zadać Ci kilka pytań dotyczących Twojej postawy wobec AI. Zaznacz, na ile zgadzasz się z każdym ze stwierdzeń. Użyj skali:")
     st.markdown("**1 – Zdecydowanie się nie zgadzam, 2 – Raczej się nie zgadzam, 3 – Ani się zgadzam, ani nie zgadzam, 4 – Raczej się zgadzam, 5 – Zdecydowanie się zgadzam**")
 
 
