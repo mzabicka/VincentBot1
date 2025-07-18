@@ -407,7 +407,13 @@ def consent_screen():
             count_A = existing.count("A")
             count_B = existing.count("B")
             # Jeśli jest mniej lub tyle samo A co B → przydzielamy A, inaczej B
-            st.session_state.group = "A" if count_A <= count_B else "B"
+            if count_A < count_B:
+                st.session_state.group = "A"
+            elif count_B < count_A:
+                st.session_state.group = "B"
+            else:
+                st.session_state.group = random.choice(["A", "B"])
+
 
             # Zapisz timestamp początkowy w session_state
             st.session_state.timestamp_start_initial = timestamp
