@@ -212,11 +212,7 @@ def save_to_sheets(data_dict):
 
 # --- FUNKCJE RAG (Retrieval Augmented Generation) ---
 def setup_rag_system(pdf_file_paths):
-    """
-    Konfiguruje system RAG, ładując indeks FAISS i model LLM.
-    Wykorzystuje @st.cache_resource do cachowania zasobów,
-    aby były ładowane tylko raz.
-    """
+
     if os.path.exists(FAISS_INDEX_PATH):
         embedding_model = HuggingFaceEmbeddings(
             model_name='all-MiniLM-L6-v2',
@@ -575,7 +571,11 @@ def pretest_screen():
                 )
             else:
                 st.session_state.gender_instruction = (
-                    "Użytkownik nie określił płci. Używaj form neutralnych (np. 'jak sobie radzisz')."
+                    "Użytkownik nie określił płci. Zwracaj się wyłącznie **neutralnie**"
+                    "- unikaj form męskich i żeńskich (np. 'zrobiłeś/zrobiłaś'),"
+                    "- używaj zdań bezosobowych lub z ogólnymi zaimkami (np. 'jak się czujesz', "
+                    "'czy chcesz spróbować', 'jak sobie radzisz')"
+                    "- unikaj zaimków jak 'on/ona'."
                 )
 
             st.session_state.page = "chat_instruction"
