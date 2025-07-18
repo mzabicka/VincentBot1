@@ -393,26 +393,19 @@ def consent_screen():
         if st.button("Przejdź do badania", key="go_to_pretest"):
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
-            
-            # ——— GLOBALNY PRZYDZIAŁ GRUPY ———
-            # Pobierz wszystkie dotychczasowe wartości kolumny "group" z arkusza
+        
+
+            # ——— NAPRZEMIENNY PRZYDZIAŁ GRUPY ———
             sheet = get_sheet()
             headers = sheet.row_values(1)
             try:
                 col_idx = headers.index("group") + 1
-                existing = sheet.col_values(col_idx)[1:]  # pomijamy nagłówek
+                existing = sheet.col_values(col_idx)[1:]
             except ValueError:
-                existing = []  # jeśli kolumna nie istnieje jeszcze
+                existing = []
 
-            count_A = existing.count("A")
-            count_B = existing.count("B")
-            # Jeśli jest mniej lub tyle samo A co B → przydzielamy A, inaczej B
-            if count_A < count_B:
-                st.session_state.group = "A"
-            elif count_B < count_A:
-                st.session_state.group = "B"
-            else:
-                st.session_state.group = random.choice(["A", "B"])
+            n = len(existing)  # ile już jest wpisów
+            st.session_state.group = "A" if n % 2 == 0 else "B"
 
 
             # Zapisz timestamp początkowy w session_state
