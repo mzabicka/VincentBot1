@@ -263,8 +263,6 @@ def setup_rag_system(pdf_file_paths):
     # Łączysz obie, ale jako osobne bloki
     gender_instruction = f"{vincent_identity_instruction}\n{user_gender_instruction}"
 
-
-    # Prompt systemowy definiujący osobowość i zachowanie chatbota 
     # Prompt systemowy definiujący osobowość i zachowanie chatbota 
     SYSTEM_PROMPT = f"""
         {gender_instruction}
@@ -941,6 +939,7 @@ def main():
         st.session_state.feedback = {} 
         st.session_state.feedback_submitted = False 
         st.session_state.start_time = None 
+        st.session_state.gender_instruction = ""
 
     # Router ekranów
     if st.session_state.page == "consent":
