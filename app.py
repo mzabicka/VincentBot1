@@ -727,7 +727,7 @@ def posttest_screen():
 
 
     st.subheader("Samowspółczucie")
-    st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak o sobie myślisz **w tej chwili**.""")
+    st.markdown("Przed odpowiedzią przeczytaj uważnie każde ze zdań. Odnosząc się do poniższej skali, zaznacz, jak o sobie myślisz.""")
     st.markdown("**1 – Prawie nigdy, 2 – Raczej rzadko, 3 – Czasami, 4 – Raczej często, 5 – Prawie zawsze**")
 
     self_compassion_items_post = self_compassion_items
