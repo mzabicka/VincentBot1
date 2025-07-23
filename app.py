@@ -357,10 +357,7 @@ def consent_screen():
     - zapoznałeś/-aś się z informacjami powyżej,
     - **wyrażasz dobrowolną i świadomą zgodę** na udział w badaniu,
     - spełniasz kryteria udziału.
-    
-    WAŻNE: Prosimy nie opuszczać strony ani nie przełączać zakładek podczas badania – może to spowodować odświeżenie strony i utratę danych.
     """
-    
     )
 
     consent = st.checkbox("Wyrażam zgodę na udział w badaniu")
