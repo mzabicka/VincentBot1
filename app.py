@@ -652,7 +652,7 @@ def chat_screen():
                 st.error(f"Błąd podczas generowania odpowiedzi: {e}")
 
     # Wyświetlanie licznika czasu i przycisku zakończenia rozmowy
-    if minutes_elapsed >= 0.1: 
+    if minutes_elapsed >= 10: 
         if st.button("Zakończ rozmowę"):
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
