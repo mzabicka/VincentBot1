@@ -221,7 +221,7 @@ def load_resources(PDF_FILE_PATHS):
 
     chat = ChatOpenAI(
         temperature=0.0,
-        model_name="openai/gpt-4o-mini",
+        model="openai/gpt-4o-mini",
         base_url="https://openrouter.ai/api/v1"
     )
     return vector_store, chat
