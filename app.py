@@ -2,18 +2,25 @@ import streamlit as st
 import subprocess
 import sys
 import os
-# --- SEKCJARATUNKOWA: WYMUSZENIE INSTALACJI ---
-# Ten fragment kodu sprawdzi, czy biblioteki działają.
-# Jeśli nie - zainstaluje je "na żywo" podczas uruchamiania strony.
+import time
+
+# --- SEKCJA RATUNKOWA: WYMUSZENIE INSTALACJI (AUTO-NAPRAWA) ---
+# Ten fragment kodu musi być na samej górze. 
+# Sprawdza czy biblioteki są, a jak nie ma - instaluje je "na żywo".
+
 try:
+    # Próbujemy zaimportować kluczowe moduły, żeby sprawdzić czy istnieją
     import langchain
     import langchain_community
     from langchain.chains import create_retrieval_chain
+    import openai
+    import gspread
 except ImportError:
-    st.empty() # Czysty element
-    status = st.warning("⚠️ Wykryto brak bibliotek (błąd serwera). Trwa awaryjna instalacja... Proszę czekać ok. 30-60 sekund.")
+    # Jeśli czegoś brakuje, wchodzimy w tryb naprawy
+    placeholder = st.empty()
+    placeholder.warning("⚠️ Wykryto brak bibliotek (błąd po zmianie repozytorium). Trwa automatyczna naprawa... Proszę czekać ok. 60 sekund.")
     
-    # Lista bibliotek do zainstalowania
+    # Lista bibliotek do zainstalowania "na siłę"
     packages = [
         "langchain", 
         "langchain-community", 
@@ -26,22 +33,32 @@ except ImportError:
         "pypdf", 
         "openai", 
         "gspread", 
-        "google-auth"
+        "google-auth",
+        "chromadb"
     ]
     
-    # Instalacja przez pip wewnątrz pythona
-    subprocess.check_call([sys.executable, "-m", "pip", "install"] + packages)
-    
-    status.success("✅ Zainstalowano pomyślnie! Strona odświeży się automatycznie.")
-    time.sleep(2)
-    st.rerun()
+    try:
+        # Uruchomienie instalacji w tle
+        subprocess.check_call([sys.executable, "-m", "pip", "install"] + packages)
+        placeholder.success("✅ Biblioteki zainstalowane! Odświeżam stronę...")
+        time.sleep(2)
+        st.rerun() # Restart aplikacji
+    except Exception as e:
+        placeholder.error(f"Wystąpił błąd podczas instalacji: {e}")
+        st.stop()
+
 # ---------------------------------------------------
-import uuid
-import json
-import requests
-from datetime import datetime
+# PONIŻEJ ZNAJDUJE SIĘ WŁAŚCIWY KOD APLIKACJI
+# (Uruchomi się dopiero, gdy powyższa sekcja naprawi biblioteki)
+# ---------------------------------------------------
+
+import openai
 import gspread
 from google.oauth2.service_account import Credentials
+import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import random
 
 
 # Importy z Langchain
