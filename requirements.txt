@@ -19,3 +19,6 @@ transformers
 sentence-transformers 
 scikit-learn 
 pydantic 
+langchain>=0.1.0
+chromadb
+tiktoken
