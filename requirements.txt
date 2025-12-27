@@ -2,12 +2,12 @@ streamlit
 openai
 gspread
 google-auth
-langchain>=0.1.0
+langchain
 langchain-community
 langchain-core
 langchain-openai
-langchain-huggingface
 langchain-text-splitters
 faiss-cpu
 tiktoken
 pypdf
+chromadb
