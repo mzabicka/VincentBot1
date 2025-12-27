@@ -1,4 +1,19 @@
 import streamlit as st
+import os
+import sys
+import subprocess
+
+# --- MAGICZNA ŁATKA NAPRAWCZA ---
+# Próbujemy zaimportować bibliotekę. Jeśli się nie uda (Błąd!),
+# wymuszamy instalację najnowszej wersji bezpośrednio z kodu.
+try:
+    from langchain.chains.combine_documents import create_stuff_documents_chain
+except ImportError:
+    st.warning("⚠️ Wykryto stare biblioteki. Aktualizuję środowisko... To potrwa chwilę.")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "langchain>=0.1.0", "langchain-community", "langchain-openai", "langchain-core", "openai", "tiktoken", "faiss-cpu", "pypdf", "gspread", "google-auth"])
+    st.success("Zaktualizowano! Odśwież stronę (F5 lub Rerun).")
+    st.stop() # Zatrzymujemy kod, żeby użytkownik odświeżył po instalacji
+# ----------------------------------import streamlit as st
 import sys
 import openai
 import gspread
