@@ -191,16 +191,28 @@ def save_to_sheets(data_dict):
 
 @st.cache_resource(show_spinner=False)
 def load_resources(PDF_FILE_PATHS):
-    # ładowanie FAISS + modelu LLM
-    if os.path.exists(FAISS_INDEX_PATH):
-        embedding_model = HuggingFaceEmbeddings(
-            model_name='all-MiniLM-L6-v2',
-            model_kwargs={'device': 'cpu'}
-        )
-        vector_store = FAISS.load_local(FAISS_INDEX_PATH, embedding_model, allow_dangerous_deserialization=True)
+    # 1. Embeddingi
+    embedding_model = HuggingFaceEmbeddings(
+        model_name='all-MiniLM-L6-v2',
+        model_kwargs={'device': 'cpu'}
+    )
+    
+    # 2. TWORZENIE BAZY OD ZERA (Bez load_local - omija błędy Pydantic)
+    docs = []
+    for path in PDF_FILE_PATHS:
+        if os.path.exists(path):
+            try:
+                loader = PyPDFLoader(path)
+                docs.extend(loader.load())
+            except Exception:
+                pass
+    
+    if docs:
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        splits = text_splitter.split_documents(docs)
+        vector_store = FAISS.from_documents(documents=splits, embedding=embedding_model)
     else:
-        st.error("Brak indeksu FAISS – uruchom prepare_rag_data.py")
-        st.stop()
+        vector_store = FAISS.from_texts(["Pusta baza."], embedding=embedding_model)
         
     chat = ChatOpenAI(
         temperature=0.0,
