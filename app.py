@@ -3,6 +3,40 @@ import sys
 import openai
 import time
 import os
+# --- SEKCJARATUNKOWA: WYMUSZENIE INSTALACJI ---
+# Ten fragment kodu sprawdzi, czy biblioteki działają.
+# Jeśli nie - zainstaluje je "na żywo" podczas uruchamiania strony.
+try:
+    import langchain
+    import langchain_community
+    from langchain.chains import create_retrieval_chain
+except ImportError:
+    st.empty() # Czysty element
+    status = st.warning("⚠️ Wykryto brak bibliotek (błąd serwera). Trwa awaryjna instalacja... Proszę czekać ok. 30-60 sekund.")
+    
+    # Lista bibliotek do zainstalowania
+    packages = [
+        "langchain", 
+        "langchain-community", 
+        "langchain-core", 
+        "langchain-openai", 
+        "langchain-huggingface",
+        "langchain-text-splitters",
+        "faiss-cpu", 
+        "tiktoken", 
+        "pypdf", 
+        "openai", 
+        "gspread", 
+        "google-auth"
+    ]
+    
+    # Instalacja przez pip wewnątrz pythona
+    subprocess.check_call([sys.executable, "-m", "pip", "install"] + packages)
+    
+    status.success("✅ Zainstalowano pomyślnie! Strona odświeży się automatycznie.")
+    time.sleep(2)
+    st.rerun()
+# ---------------------------------------------------
 import uuid
 import json
 import requests
