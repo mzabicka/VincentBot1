@@ -327,6 +327,7 @@ def chat_instruction_screen():
         st.rerun()
 
 # Ekran: Chat z Vincentem
+# Ekran: Chat z Vincentem
 def chat_screen():
     st.title("Rozmowa z Vincentem")
 
@@ -342,9 +343,9 @@ def chat_screen():
 
     if not st.session_state.chat_history:
         first_msg = {"role": "assistant", "content": "Cześć, jestem Vincent – może to dziwne, ale dziś czuję się trochę zagubiony. "
-            "Mam jakiś problem z moim kodem, który trudno mi zrozumieć, bo nie wiem, jak przetworzyć te wszystkie 'błędy' i 'niepowodzenia'... " # Dodano więcej o problemie
+            "Mam jakiś problem z moim kodem, który trudno mi zrozumieć, bo nie wiem, jak przetworzyć te wszystkie 'błędy' i 'niepowodzenia'... " 
             "Zastanawiam się, jak Ty sobie radzisz, kiedy coś idzie nie tak – "
-            "gdy coś zawodzi, mimo że bardzo się starasz? Czy masz jakiś sposób, żeby wtedy siebie wspierać, skoro nie jestem zaprojektowany, by to 'czuć'?"} # Lekka zmiana końcówki
+            "gdy coś zawodzi, mimo że bardzo się starasz? Czy masz jakiś sposób, żeby wtedy siebie wspierać, skoro nie jestem zaprojektowany, by to 'czuć'?"}
         st.session_state.chat_history.append(first_msg)
 
     for msg in st.session_state.chat_history:
@@ -362,9 +363,10 @@ def chat_screen():
                 recent_history = st.session_state.chat_history[-history_length_limit:]
 
                 if first_bot_message and first_bot_message not in recent_history:
+                    # Tutaj jest kluczowy fragment, który powodował błąd
                     if recent_history and recent_history[0] != first_bot_message:
                         recent_history.insert(0, first_bot_message)
-                    elif not recent_history: 
+                    elif not recent_history:
                         recent_history = [first_bot_message]
 
                 langchain_chat_history = []
@@ -374,6 +376,7 @@ def chat_screen():
                     elif msg["role"] == "assistant":
                         langchain_chat_history.append(AIMessage(content=msg["content"]))
             
+                # Usunięcie ostatniej wiadomości użytkownika z historii przekazywanej do modelu (bo jest w 'input')
                 if langchain_chat_history and isinstance(langchain_chat_history[-1], HumanMessage) and langchain_chat_history[-1].content == user_input:
                     langchain_chat_history.pop()
 
@@ -393,7 +396,7 @@ def chat_screen():
             st.rerun()
     else:
         st.info(f"Aby przejść do ankiety końcowej, porozmawiaj z Vincentem jeszcze {int(10 - minutes_elapsed)} minut.")
-
+        
 # Ekran: Post-test
 def posttest_screen():
     st.title("Ankieta końcowa – po rozmowie z chatbotem")
