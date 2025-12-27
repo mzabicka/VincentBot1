@@ -18,21 +18,9 @@ from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain, create_history_aware_retriever
+from langchain.chains.retrieval import create_retrieval_chain, create_history_aware_retriever
 from langchain_core.messages import HumanMessage, AIMessage
 
-# --- ODKURZACZ (Nuclear Option) ---
-# To usuwa stary, zepsuty folder z bazą danych przy każdym uruchomieniu.
-# Dzięki temu błąd KeyError: '__fields_set__' jest fizycznie niemożliwy.
-FOLDERS_TO_DELETE = ["faiss_vector_store_rag", "faiss_db_final_fix", "faiss_new_db_v2"]
-for folder in FOLDERS_TO_DELETE:
-    if os.path.exists(folder):
-        try:
-            shutil.rmtree(folder)
-            print(f"USUNIĘTO STARY FOLDER: {folder}")
-        except Exception as e:
-            print(f"Nie udało się usunąć {folder}: {e}")
-            
 # --- KONFIGURACJA ---
 
 # Konfiguracja arkusza google do zapisu danych
@@ -203,28 +191,16 @@ def save_to_sheets(data_dict):
 
 @st.cache_resource(show_spinner=False)
 def load_resources(PDF_FILE_PATHS):
-    # 1. Embeddingi
-    embedding_model = HuggingFaceEmbeddings(
-        model_name='all-MiniLM-L6-v2',
-        model_kwargs={'device': 'cpu'}
-    )
-    
-    # 2. TWORZENIE BAZY OD ZERA (Bez load_local - omija błędy Pydantic)
-    docs = []
-    for path in PDF_FILE_PATHS:
-        if os.path.exists(path):
-            try:
-                loader = PyPDFLoader(path)
-                docs.extend(loader.load())
-            except Exception:
-                pass
-    
-    if docs:
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        splits = text_splitter.split_documents(docs)
-        vector_store = FAISS.from_documents(documents=splits, embedding=embedding_model)
+    # ładowanie FAISS + modelu LLM
+    if os.path.exists(FAISS_INDEX_PATH):
+        embedding_model = HuggingFaceEmbeddings(
+            model_name='all-MiniLM-L6-v2',
+            model_kwargs={'device': 'cpu'}
+        )
+        vector_store = FAISS.load_local(FAISS_INDEX_PATH, embedding_model, allow_dangerous_deserialization=True)
     else:
-        vector_store = FAISS.from_texts(["Pusta baza."], embedding=embedding_model)
+        st.error("Brak indeksu FAISS – uruchom prepare_rag_data.py")
+        st.stop()
         
     chat = ChatOpenAI(
         temperature=0.0,
