@@ -12,8 +12,6 @@ langchain-text-splitters==0.2.1
 langchain-huggingface==0.0.3
 faiss-cpu
 requests==2.32.3
-numpy==1.26.4
-pandas==2.2.2
 torch
 transformers
 sentence-transformers==3.0.1
