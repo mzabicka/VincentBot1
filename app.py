@@ -360,8 +360,9 @@ def chat_screen():
                 history_length_limit = 6 
                 first_bot_message = next((msg for msg in st.session_state.chat_history if msg["role"] == "assistant"), None)
                 recent_history = st.session_state.chat_history[-history_length_limit:]
+
                 if first_bot_message and first_bot_message not in recent_history:
-                   if recent_history and recent_history[0] != first_bot_message:
+                    if recent_history and recent_history[0] != first_bot_message:
                         recent_history.insert(0, first_bot_message)
                     elif not recent_history: 
                          recent_history = [first_bot_message]
@@ -372,7 +373,7 @@ def chat_screen():
                         langchain_chat_history.append(HumanMessage(content=msg["content"]))
                     elif msg["role"] == "assistant":
                         langchain_chat_history.append(AIMessage(content=msg["content"]))
-                
+            
                 if langchain_chat_history and isinstance(langchain_chat_history[-1], HumanMessage) and langchain_chat_history[-1].content == user_input:
                     langchain_chat_history.pop()
 
@@ -385,7 +386,7 @@ def chat_screen():
                 st.chat_message("assistant").markdown(reply)
             except Exception as e:
                 st.error(f"Błąd podczas generowania odpowiedzi: {e}")
-
+                
     if minutes_elapsed >= 0.1:
         if st.button("Zakończ rozmowę"):
             st.session_state.page = "posttest"
