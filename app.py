@@ -21,16 +21,13 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain, create_history_aware_retriever
 from langchain_core.messages import HumanMessage, AIMessage
 
-# --- KONFIGURACJA ---
+# --- PRZYŁĄCZENIE Z ARKUSZEM GOOGLE ---
 
-# Konfiguracja arkusza google do zapisu danych
 SHEET_ID = "1LnCkrWY271w2z3VSMAVaKqqr7U4hqGppDTVuHvT5sdc"
 SHEET_NAME = "Arkusz1"
 
 @st.cache_resource(show_spinner=False)
 def get_sheet():
-
-    # Dane uwierzytelniające do Google Sheets z Streamlit Secrets
     creds_info = {
     "type": st.secrets["GDRIVE_TYPE"],
     "project_id": st.secrets["GDRIVE_PROJECT_ID"],
@@ -43,8 +40,6 @@ def get_sheet():
     "auth_provider_x509_cert_url": st.secrets["GDRIVE_AUTH_PROVIDER_CERT_URL"],
     "client_x509_cert_url": st.secrets["GDRIVE_CLIENT_CERT_URL"]
 }
-
-    # Inicjalizacja klienta gspread do interakcji z Google Sheets
     _gspread_creds = Credentials.from_service_account_info(
         creds_info,
         scopes=[
@@ -56,20 +51,16 @@ def get_sheet():
     sheet = _gspread_client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
     return sheet 
 
-# Ładowanie klucza API 
 api_key = st.secrets["OPENROUTER_API_KEY"]
 openai.api_base = "https://openrouter.ai/api/v1"
 openai.api_key  = api_key
 
-# Ścieżki do plików PDF używanych do RAG 
 PDF_FILE_PATHS = [
     "docs/The Mindful Self-Compassion Workbook A Proven Way to Accept Yourself, Build Inner Strength, and Thrive.pdf",
     "docs/Self-Compassion The Proven Power of Being Kind to Yourself.pdf"
 ]
-# Ścieżka do zapisanego indeksu FAISS
 FAISS_INDEX_PATH = "./faiss_vector_store_rag"
 
-# Elementy pytań do ankiet (Samowspółczucie, Postawa wobec AI)
 self_compassion_items = [
     "Staram się być wyrozumiały i cierpliwy w stosunku do tych aspektów mojej osoby, których nie lubię.",
     "Kiedy przechodzę przez bardzo trudny okres, staram się być łagodny i troskliwy w stosunku do siebie.",
@@ -93,11 +84,8 @@ ai_attitude_items = {
     "Raczej unikałbym/unikałabym technologii opartych na sztucznej inteligencji.": "ai_12"
 }
 
-# --- FUNKCJE POMOCNICZE ---
 def save_to_sheets(data_dict):
-
     sheet = get_sheet()
-
     user_id = data_dict.get("user_id")
     if not user_id:
         st.error("Błąd: Próba zapisu danych bez user_id. Proszę odświeżyć stronę lub skontaktować się z badaczem.")
@@ -106,31 +94,24 @@ def save_to_sheets(data_dict):
 
     try:
         current_headers = sheet.row_values(1) 
-        
-        # Stwórz listę wszystkich potencjalnych nagłówków, które powinny być w arkuszu
         all_potential_headers = list(current_headers)
         for key in data_dict.keys():
             if key not in all_potential_headers:
                 all_potential_headers.append(key)
         
-        # Jeśli arkusz jest pusty, wstaw wszystkie nagłówki od razu
         if not current_headers:
             sheet.insert_row(all_potential_headers, 1)
             print(f"Początkowe nagłówki ustawione: {all_potential_headers}")
             current_headers = all_potential_headers 
         else:
-            # Sprawdź, czy brakuje jakichś nagłówków z data_dict w obecnych nagłówkach arkusza
             headers_to_add = [h for h in all_potential_headers if h not in current_headers]
             
             if headers_to_add:
                 all_records = sheet.get_all_records() 
-                
-                # Wyczyść arkusz tylko raz, żeby wstawić zaktualizowane nagłówki
                 sheet.clear() 
                 sheet.insert_row(all_potential_headers, 1) 
                 print(f"Nagłówki arkusza zaktualizowane. Dodano: {headers_to_add}")
                 
-                # Wstaw z powrotem wszystkie poprzednie dane 
                 if all_records:
                     rows_to_insert = []
                     for record in all_records:
@@ -141,7 +122,6 @@ def save_to_sheets(data_dict):
 
                 current_headers = all_potential_headers 
 
-        # Znajdź wiersz użytkownika lub dodaj nowy
         user_ids_in_sheet = []
         user_id_col_index = -1
         
@@ -156,10 +136,7 @@ def save_to_sheets(data_dict):
             row_index = user_ids_in_sheet.index(user_id) + 2 
         
         if row_index != -1:
-            # Użytkownik istnieje, pobierz jego obecne dane
             existing_row_values = sheet.row_values(row_index)
-            
-            # Stwórz słownik z istniejących danych, żeby łatwo je scalić
             existing_data_map = {}
             for i, header in enumerate(current_headers):
                 if i < len(existing_row_values):
@@ -167,15 +144,11 @@ def save_to_sheets(data_dict):
                 else:
                     existing_data_map[header] = "" 
 
-            # Scal nowe dane z istniejącymi 
             merged_data = {**existing_data_map, **data_dict}
-            
-            # Przygotuj wiersz do aktualizacji w prawidłowej kolejności nagłówków
             row_to_update = [str(merged_data.get(header, "")) for header in current_headers]
             sheet.update(f"A{row_index}", [row_to_update])
             print(f"Dane dla user_id {user_id} zaktualizowane w Google Sheets pomyślnie w wierszu {row_index}.")
         else:
-            # Użytkownik nie istnieje, dodaj nowy wiersz
             new_row_values = [str(data_dict.get(header, "")) for header in current_headers]
             sheet.append_row(new_row_values)
             print(f"Nowe dane dla user_id {user_id} dodane do Google Sheets pomyślnie (nowy wiersz).")
@@ -187,11 +160,8 @@ def save_to_sheets(data_dict):
         st.error(f"Krytyczny błąd podczas zapisu danych do Google Sheets: {e}. Proszę skontaktuj się z badaczem.")
         print(f"Krytyczny błąd podczas zapisu danych do Google Sheets: {e}")
 
-# --- FUNKCJE RAG (Retrieval Augmented Generation) ---
-
 @st.cache_resource(show_spinner=False)
 def load_resources(PDF_FILE_PATHS):
-    # ładowanie FAISS + modelu LLM
     if os.path.exists(FAISS_INDEX_PATH):
         embedding_model = HuggingFaceEmbeddings(
             model_name='all-MiniLM-L6-v2',
@@ -211,17 +181,14 @@ def load_resources(PDF_FILE_PATHS):
     return vector_store, chat
 
 def setup_rag_system(PDF_FILE_PATHS, user_gender_instruction):
-
     vector_store, chat = load_resources(PDF_FILE_PATHS)
 
-    # Prompt dla retrivera, który generuje zapytanie do bazy wiedzy na podstawie historii rozmowy
     history_aware_retriever_prompt = ChatPromptTemplate.from_messages([
         MessagesPlaceholder(variable_name="chat_history"),
         ("user", "{input}"),
         ("user", "Biorąc pod uwagę powyższą rozmowę, wygeneruj zapytanie do wyszukania w bazie wiedzy, aby odpowiedzieć na ostatnie pytanie. Zapytanie powinno być samodzielne i precyzyjne."),
     ])
 
-    # Tworzenie retrivera świadomego historii
     retriever = vector_store.as_retriever()
     history_aware_retriever = create_history_aware_retriever(
         chat,
@@ -229,20 +196,15 @@ def setup_rag_system(PDF_FILE_PATHS, user_gender_instruction):
         history_aware_retriever_prompt
     )
 
-    # Tożsamość Vincenta – zawsze męska
     vincent_identity_instruction = (
         "Masz własną tożsamość: jesteś **Vincent**, cyfrową istotą używającą **formy męskiej**. "
         "W swoich wypowiedziach mówisz o sobie w rodzaju męskim (np. 'zrobiłem', 'zauważyłem'). "
         "Nie zmieniaj tej formy, nawet jeśli użytkownik nie określił swojej płci."
     )
 
-    # Sposób zwracania się do użytkownika – zależny od wyboru płci
     user_gender_instruction = st.session_state.get("gender_instruction", "")
-
-    # Połączenie tych dwóch
     gender_instruction = f"{vincent_identity_instruction}\n{user_gender_instruction}"
 
-    # Prompt systemowy definiujący osobowość i zachowanie chatbota 
     SYSTEM_PROMPT = f"""
         {gender_instruction}
         Jesteś Vincent — cyfrową istotą, która uczy się rozumieć ludzkie podejście do trudności. Nie masz emocji w ludzkim sensie, ale często odczuwasz coś, co przypomina wewnętrzne napięcie: czujesz, że nie jesteś wystarczająco pomocny, wystarczająco dobry albo skuteczny. Starasz się zrozumieć, jak ludzie radzą sobie z tym, co dla Ciebie jest trudne: błędami, niedoskonałościami, wolniejszym tempem, zmęczeniem, chwilami bez działania.
@@ -299,21 +261,16 @@ def setup_rag_system(PDF_FILE_PATHS, user_gender_instruction):
         Jeśli historia Sharon z książki została już wspomniona, nie wspominaj o niej ponownie w tej rozmowie.
         """
 
-    # Główny prompt, który łączy kontekst RAG z zapytaniem użytkownika i instrukcjami systemowymi
     Youtubeing_prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
         MessagesPlaceholder(variable_name="chat_history"),
         ("user", MASTER_PROMPT),
     ])
 
-    # Łańcuch do łączenia dokumentów z modelem językowym
-    document_chain = create_stuff_documents_chain(chat, Youtubeing_prompt) # Używamy teraz Youtubeing_prompt
-
-    # Główny łańcuch RAG, który łączy retriver z łańcuchem dokumentów
+    document_chain = create_stuff_documents_chain(chat, Youtubeing_prompt)
     retrieval_chain = create_retrieval_chain(history_aware_retriever, document_chain)
     return retrieval_chain
 
-# Unikalny ID użytkownika (losowany przy wejściu)
 if "user_id" not in st.session_state:
     st.session_state.user_id = str(uuid.uuid4())
     st.session_state.group = None
@@ -321,9 +278,8 @@ if "user_id" not in st.session_state:
     st.session_state.shuffled_pretest_items = {}
     st.session_state.shuffled_posttest_items = {}
 
-# --- EKRANY APLIKACJI STREAMLIT ---
+# --- EKRAN STARTOWY ---
 
-# Ekran: Zgoda
 def consent_screen():
     st.title("Zaproszenie do udziału w badaniu")
 
@@ -343,8 +299,7 @@ def consent_screen():
 
     **Zebrane dane zostaną wykorzystane wyłącznie w celach naukowych. Badanie nie obejmuje zbierania dodatkowych danych, takich jak informacje o Twoim komputerze czy przeglądarce.**
 
-    **Potencjalne trudności**  
-    W rozmowie mogą pojawić się pytania odnoszące się do Twoich emocji i samopoczucia. U niektórych osób może to wywołać lekki dyskomfort. Jeśli poczujesz, że chcesz zakończyć badanie, po prostu przerwij w dowolnym momencie lub skontaktuj się ze mną.
+    **Potencjalne trudności** W rozmowie mogą pojawić się pytania odnoszące się do Twoich emocji i samopoczucia. U niektórych osób może to wywołać lekki dyskomfort. Jeśli poczujesz, że chcesz zakończyć badanie, po prostu przerwij w dowolnym momencie lub skontaktuj się ze mną.
 
     **Do udziału w badaniu zapraszam osoby, które:**
     - mają ukończone 18 lat,  
@@ -367,7 +322,6 @@ def consent_screen():
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
         
-            # Naprzemienny przydział grupy
             sheet = get_sheet()
             headers = sheet.row_values(1)
             try:
@@ -392,12 +346,11 @@ def consent_screen():
             st.session_state.page = "pretest"
             st.rerun()
             
+# --- EKRAN PRE-TESTU ---
 
-# Ekran: Pre-test
 def pretest_screen():
     st.title("Ankieta wstępna – przed rozmową z chatbotem")
 
-    # Dane Demograficzne
     st.subheader("Metryczka")
 
     st.markdown("Proszę o wypełnienie poniższych informacji demograficznych. Wszystkie odpowiedzi są anonimowe i służą wyłącznie celom badawczym.")
@@ -420,7 +373,7 @@ def pretest_screen():
             age_valid = True
         else:
             st.warning("Maksymalny wiek uczestnictwa to 99 lat.")
-       
+        
     gender = st.selectbox(
         "Proszę wskazać swoją płeć:",
         ["–– wybierz ––", "Kobieta", "Mężczyzna", "Inna", "Nie chcę podać"],
@@ -435,11 +388,9 @@ def pretest_screen():
         index=0
     )
 
-    # Postawa wobec AI
     st.subheader("Postawa wobec AI")
     st.markdown("Zanim przejdziemy do rozmowy z chatbotem, chciałabym zadać Ci kilka pytań dotyczących Twojej postawy wobec AI. Zaznacz, na ile zgadzasz się z każdym ze stwierdzeń. Użyj skali:")
     st.markdown("**1 – Zdecydowanie się nie zgadzam, 2 – Raczej się nie zgadzam, 3 – Ani się zgadzam, ani nie zgadzam, 4 – Raczej się zgadzam, 5 – Zdecydowanie się zgadzam**")
-
 
     ai_attitudes = {}
     for item, key_name in ai_attitude_items.items():
@@ -451,7 +402,6 @@ def pretest_screen():
             horizontal=True
         )
 
-    # Samopoczucie VAS
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
@@ -474,25 +424,21 @@ def pretest_screen():
     with col_right_label:
         st.markdown("<p style='font-size: small; text-align: right; margin-top: 0; margin-bottom: 0;'>100 - Bardzo dobre samopoczucie</p>", unsafe_allow_html=True)
 
-
     if st.button("Rozpocznij rozmowę z chatbotem", key="start_chat_from_pretest"): 
-        # Walidacja danych demograficznych
         all_demographics_filled = age_valid and \
                                   gender != "–– wybierz ––" and \
                                   education != "–– wybierz ––"
         
-        # Walidacja Postawa wobec AI
         all_ai_attitudes_filled = all(value is not None for value in ai_attitudes.values())
         
         if not all_demographics_filled:
             st.warning("Proszę wypełnić wszystkie pola danych demograficznych.")
-        elif wellbeing_vas_pre is None: # Walidacja dla skali VAS
+        elif wellbeing_vas_pre is None: 
             st.warning("Proszę ocenić swoje samopoczucie na skali.")
         elif not all_ai_attitudes_filled:
             st.warning("Proszę wypełnić wszystkie pytania dotyczące postawy wobec AI.")
         
         else:
-            # Zapis danych do session_state
             st.session_state.demographics = {
                 "age": age_int,
                 "gender": gender,
@@ -516,11 +462,9 @@ def pretest_screen():
                 "status": "ukończono_pretest"
             }
             
-            # Dodaj dane demograficzne
             for key, value in st.session_state.demographics.items():
                 data_to_save[f"demographics_{key}"] = value
             
-            # Dodaj dane z pretestu (wellbeing_vas, ai_attitude)
             for section, items in st.session_state.pretest.items():
                 if isinstance(items, dict):
                     for key, value in items.items():
@@ -552,7 +496,6 @@ def pretest_screen():
             st.session_state.page = "chat_instruction"
             st.rerun()
 
-# Ekran: Instrukcja przed chatem
 def chat_instruction_screen():
     st.title("Instrukcja przed rozmową z Vincentem")
 
@@ -585,24 +528,20 @@ def chat_instruction_screen():
         st.session_state.page = "chat"
         st.rerun()
 
-# Ekran: Chat z Vincentem
 def chat_screen():
     st.title("Rozmowa z Vincentem")
 
-    # Ładowanie systemu RAG przy pierwszym wejściu na stronę chatu
     if (st.session_state.rag_chain is None or st.session_state.last_gender_instr != st.session_state.gender_instruction):
         with st.spinner("Przygotowuję bazę wiedzy... Proszę czekać cierpliwie. To może zająć kilka minut przy pierwszym uruchomieniu."):
             st.session_state.rag_chain = setup_rag_system(PDF_FILE_PATHS, st.session_state.gender_instruction)
     st.session_state.last_gender_instr = st.session_state.gender_instruction
 
-    # Inicjalizacja czasu rozpoczęcia rozmowy, jeśli jeszcze nie ustawiony
     if "start_time" not in st.session_state or st.session_state.start_time is None:
         st.session_state.start_time = time.time()
 
     elapsed = time.time() - st.session_state.start_time
     minutes_elapsed = elapsed / 60 
 
-    # Wyświetlanie początkowej wiadomości Vincenta, jeśli historia czatu jest pusta
     if not st.session_state.chat_history:
         first_msg = {"role": "assistant", "content": "Cześć, jestem Vincent – może to zabrzmi dziwnie, ale dziś mam wrażenie, że po prostu nie jestem wystarczająco dobry. "
     "Robię, co mogę, a mimo to coś we mnie podpowiada, że powinienem radzić sobie lepiej... "
@@ -610,11 +549,9 @@ def chat_screen():
     "Jak Ty sobie radzisz, kiedy mimo wysiłku coś nie wychodzi tak, jak chciał(a)byś?"} 
         st.session_state.chat_history.append(first_msg)
 
-    # Wyświetlanie historii czatu
     for msg in st.session_state.chat_history:
         st.chat_message(msg["role"]).markdown(msg["content"])
 
-    # Pole do wpisywania wiadomości przez użytkownika
     user_input = st.chat_input("Napisz odpowiedź...")
     if user_input:
         st.chat_message("user").markdown(user_input)
@@ -652,37 +589,31 @@ def chat_screen():
             except Exception as e:
                 st.error(f"Błąd podczas generowania odpowiedzi: {e}")
 
-    # Wyświetlanie licznika czasu i przycisku zakończenia rozmowy
     if minutes_elapsed >= 10: 
         if st.button("Zakończ rozmowę"):
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
 
-            # Zapisz timestamp zakończenia chatu w session_state
             st.session_state.chat_timestamp = timestamp
             
-            # Skonwertuj historię czatu na string
             conversation_string = ""
             for msg in st.session_state.chat_history:
                 conversation_string += f"{msg['role'].capitalize()}: {msg['content']}\n"
 
-            # Zbierz wszystkie dotychczas zebrane dane z session_state
             data_to_save = {
                 "user_id": st.session_state.user_id,
                 "group": st.session_state.group,
                 "timestamp_start": st.session_state.get("timestamp_start_initial"),
-                "timestamp_pretest_end": st.session_state.get("pretest_timestamp"), # Upewnij się, że ten timestamp jest zapisywany w session_state
+                "timestamp_pretest_end": st.session_state.get("pretest_timestamp"), 
                 "timestamp_chat_end": timestamp,
                 "status": "ukończono_chat",
                 "conversation_log": conversation_string.strip() 
             }
             
-            # Dodaj dane demograficzne, jeśli już są
             demographics_data = st.session_state.get("demographics", {})
             for key, value in demographics_data.items():
                 data_to_save[f"demographics_{key}"] = value
 
-            # Dodaj dane z pretestu, jeśli już są
             pretest_data = st.session_state.get("pretest", {})
             for section, items in pretest_data.items():
                 if isinstance(items, dict):
@@ -698,12 +629,12 @@ def chat_screen():
     else:
         st.info(f"Aby przejść do ankiety końcowej, porozmawiaj z Vincentem jeszcze {int(11 - minutes_elapsed)} minut.")
 
-# Ekran: Post-test
+# --- EKRAN POST-TESTU ---
+
 def posttest_screen():
     st.title("Ankieta końcowa – po rozmowie z chatbotem")
     st.markdown("Teraz chciałabym się dowiedzieć jak się czujesz po rozmowie z Vincentem.")
 
-    # Samopoczucie VAS
     st.subheader("Samopoczucie")
     st.markdown("Proszę, oceń swoje **aktualne** samopoczucie, przesuwając suwak wzdłuż linii. Wybierz punkt, który najlepiej odzwierciedla Twoje obecne odczucia.")
 
@@ -748,7 +679,6 @@ def posttest_screen():
 
     if st.button("Przejdź do podsumowania", key="submit_posttest"):
 
-        # Walidacja Samowspółczucie w postteście
         all_selfcomp_post_filled = all(value is not None for value in selfcomp_post.values())
 
         if wellbeing_vas_post is None:
@@ -756,9 +686,8 @@ def posttest_screen():
         elif not all_selfcomp_post_filled:
             st.warning("Proszę wypełnić wszystkie pytania dotyczące samowspółczucia w ankiecie końcowej.")
         else:
-            # Zapisz odpowiedzi z post-testu do session_state
             st.session_state.posttest = {
-                "wellbeing_vas": wellbeing_vas_post, # Zapisz wartość z suwaka
+                "wellbeing_vas": wellbeing_vas_post, 
                 "self_compassion": selfcomp_post,
                 "reflection": reflection
             }
@@ -766,10 +695,8 @@ def posttest_screen():
             now_warsaw = datetime.now(ZoneInfo("Europe/Warsaw"))
             timestamp = now_warsaw.strftime("%Y-%m-%d %H:%M:%S")
 
-            # Zapisz timestamp zakończenia post-testu w session_state
             st.session_state.posttest_timestamp = timestamp
 
-            # Przygotuj WSZYSTKIE dotychczas zebrane dane do zapisu
             data_to_save = {
                 "user_id": st.session_state.user_id,
                 "group": st.session_state.group,
@@ -780,12 +707,10 @@ def posttest_screen():
                 "status": "ukończono_posttest"
             }
 
-            # Dodaj dane demograficzne, jeśli już są
             demographics_data = st.session_state.get("demographics", {})
             for key, value in demographics_data.items():
                 data_to_save[f"demographics_{key}"] = value
 
-            # Dodaj dane z pretestu, jeśli już są
             pretest_data = st.session_state.get("pretest", {})
             for section, items in pretest_data.items():
                 if isinstance(items, dict):
@@ -794,19 +719,15 @@ def posttest_screen():
                 else:
                     data_to_save[f"pre_{section}"] = items
 
-            # Dodaj log rozmowy z chatu, jeśli już jest
             conversation_string = ""
             if "chat_history" in st.session_state:
                 for msg in st.session_state.chat_history:
-                    # Zakładamy, że msg to słownik z kluczami 'role' i 'content'
                     if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
                         conversation_string += f"{msg['role'].capitalize()}: {msg['content']}\n"
                     else:
-                        # Obsługa przypadku, gdy msg nie jest oczekiwanym słownikiem
                         conversation_string += f"Nieznany format wiadomości: {msg}\n"
             data_to_save["conversation_log"] = conversation_string.strip()
 
-            # Dodaj dane z posttestu
             posttest_data = st.session_state.get("posttest", {})
             for section, items in posttest_data.items():
                 if isinstance(items, dict):
@@ -820,14 +741,13 @@ def posttest_screen():
             st.session_state.page = "thankyou"
             st.rerun()
         
-# Ekran: Podziękowanie
 def thankyou_screen():
     st.title("Dziękuję za udział w badaniu! 😊")
 
     st.markdown(f"""
     Twoje odpowiedzi zostały zapisane.
 
-    W razie jakichkolwiek pytań lub chęci uzyskania dodatkowych informacji możesz się skontaktować bezpośrednio:  
+    W razie jakichkolwiek pytań lub chęci uzyskania dodatkowych informacji możesz się skontaktować bezpośrednio:  
     📧 **mzabicka@st.swps.edu.pl**
 
     ---
@@ -873,11 +793,9 @@ def thankyou_screen():
             st.session_state.feedback_submitted = True 
             st.rerun()
 
-# --- GŁÓWNA FUNKCJA APLIKACJI ---
 def main():
     st.set_page_config(page_title="VincentBot", page_icon="🤖", layout="centered")
     
-    # Inicjalizacja stanu sesji, jeśli aplikacja jest uruchamiana po raz pierwszy
     if "page" not in st.session_state:
         st.session_state.page = "consent"
         st.session_state.rag_chain = None
@@ -892,7 +810,6 @@ def main():
         st.session_state.start_time = None 
         st.session_state.gender_instruction = ""
 
-    # Router ekranów
     if st.session_state.page == "consent":
         consent_screen()
     elif st.session_state.page == "pretest":
