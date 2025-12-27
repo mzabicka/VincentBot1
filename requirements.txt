@@ -9,6 +9,7 @@ langchain-openai==0.1.13
 langchain-huggingface==0.0.3
 langchain-text-splitters==0.2.1
 faiss-cpu
+langchain-classic
 tiktoken==0.7.0
 pypdf==4.2.0
 sentence-transformers==3.0.1
