@@ -327,7 +327,6 @@ def chat_instruction_screen():
         st.rerun()
 
 # Ekran: Chat z Vincentem
-# Ekran: Chat z Vincentem
 def chat_screen():
     st.title("Rozmowa z Vincentem")
 
@@ -362,8 +361,8 @@ def chat_screen():
                 first_bot_message = next((msg for msg in st.session_state.chat_history if msg["role"] == "assistant"), None)
                 recent_history = st.session_state.chat_history[-history_length_limit:]
 
+                # TU BYŁ BŁĄD - TERAZ JEST POPRAWNIE:
                 if first_bot_message and first_bot_message not in recent_history:
-                    # Tutaj jest kluczowy fragment, który powodował błąd
                     if recent_history and recent_history[0] != first_bot_message:
                         recent_history.insert(0, first_bot_message)
                     elif not recent_history:
@@ -376,7 +375,6 @@ def chat_screen():
                     elif msg["role"] == "assistant":
                         langchain_chat_history.append(AIMessage(content=msg["content"]))
             
-                # Usunięcie ostatniej wiadomości użytkownika z historii przekazywanej do modelu (bo jest w 'input')
                 if langchain_chat_history and isinstance(langchain_chat_history[-1], HumanMessage) and langchain_chat_history[-1].content == user_input:
                     langchain_chat_history.pop()
 
