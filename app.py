@@ -1,7 +1,6 @@
 import streamlit as st
+import subprocess
 import sys
-import openai
-import time
 import os
 # --- SEKCJARATUNKOWA: WYMUSZENIE INSTALACJI ---
 # Ten fragment kodu sprawdzi, czy biblioteki działają.
