@@ -21,6 +21,18 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain, create_history_aware_retriever
 from langchain_core.messages import HumanMessage, AIMessage
 
+# --- ODKURZACZ (Nuclear Option) ---
+# To usuwa stary, zepsuty folder z bazą danych przy każdym uruchomieniu.
+# Dzięki temu błąd KeyError: '__fields_set__' jest fizycznie niemożliwy.
+FOLDERS_TO_DELETE = ["faiss_vector_store_rag", "faiss_db_final_fix", "faiss_new_db_v2"]
+for folder in FOLDERS_TO_DELETE:
+    if os.path.exists(folder):
+        try:
+            shutil.rmtree(folder)
+            print(f"USUNIĘTO STARY FOLDER: {folder}")
+        except Exception as e:
+            print(f"Nie udało się usunąć {folder}: {e}")
+            
 # --- KONFIGURACJA ---
 
 # Konfiguracja arkusza google do zapisu danych
