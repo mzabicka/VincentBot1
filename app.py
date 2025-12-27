@@ -365,7 +365,7 @@ def chat_screen():
                     if recent_history and recent_history[0] != first_bot_message:
                         recent_history.insert(0, first_bot_message)
                     elif not recent_history: 
-                         recent_history = [first_bot_message]
+                        recent_history = [first_bot_message]
 
                 langchain_chat_history = []
                 for msg in recent_history: 
