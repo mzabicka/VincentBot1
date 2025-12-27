@@ -196,28 +196,29 @@ def load_resources(PDF_FILE_PATHS):
         model_kwargs={'device': 'cpu'}
     )
     
-    try:
-        vector_store = FAISS.load_local(FAISS_INDEX_PATH, embedding_model, allow_dangerous_deserialization=True)
-    except Exception as e:
-        status = st.warning("⚠️ Aktualizuję bazę wiedzy do nowej wersji bibliotek... (to zajmie ok. 30-60 sekund)")
-        
+    if os.path.exists(FAISS_INDEX_PATH):
+        try:
+            vector_store = FAISS.load_local(FAISS_INDEX_PATH, embedding_model, allow_dangerous_deserialization=True)
+        except Exception:
+            vector_store = None
+    else:
+        vector_store = None
+
+    if vector_store is None:
         docs = []
         for path in PDF_FILE_PATHS:
             if os.path.exists(path):
                 loader = PyPDFLoader(path)
                 docs.extend(loader.load())
-            else:
-                st.error(f"Nie znaleziono pliku: {path}")
         
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        splits = text_splitter.split_documents(docs)
-        vector_store = FAISS.from_documents(documents=splits, embedding=embedding_model)
-        
-        vector_store.save_local(FAISS_INDEX_PATH)
-        status.success("✅ Baza zaktualizowana!")
-        time.sleep(1)
-        status.empty()
-    
+        if docs:
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            splits = text_splitter.split_documents(docs)
+            vector_store = FAISS.from_documents(documents=splits, embedding=embedding_model)
+
+        else:
+            vector_store = FAISS.from_texts(["Brak danych"], embedding=embedding_model)
+
     chat = ChatOpenAI(
         temperature=0.0,
         model_name="openai/gpt-4o-mini",
