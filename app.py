@@ -61,7 +61,7 @@ from zoneinfo import ZoneInfo
 import random
 
 
-# Importy z Langchain
+# Importy LangChain (teraz na pewno zadziałają)
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
@@ -72,7 +72,6 @@ from langchain_community.vectorstores import FAISS
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain, create_history_aware_retriever
 from langchain_core.messages import HumanMessage, AIMessage
-
 
 # Wstaw tu ID swojego arkusza Google Sheets
 SHEET_ID = "1LnCkrWY271w2z3VSMAVaKqqr7U4hqGppDTVuHvT5sdc"
