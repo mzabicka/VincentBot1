@@ -12,3 +12,11 @@ faiss-cpu
 tiktoken
 pypdf
 sentence-transformers
+requests
+numpy
+pandas
+torch 
+transformers 
+sentence-transformers 
+scikit-learn 
+pydantic
