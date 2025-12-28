@@ -191,13 +191,11 @@ def save_to_sheets(data_dict):
 
 @st.cache_resource(show_spinner=False)
 def load_resources(PDF_FILE_PATHS):
-    # 1. Konfiguracja modelu
     embedding_model = HuggingFaceEmbeddings(
         model_name='all-MiniLM-L6-v2',
         model_kwargs={'device': 'cpu'}
     )
 
-    # 2. ZAWSZE twórz nową bazę (omijamy błędy wersji plików)
     with st.spinner("Konfiguruję Vincenta... (To zajmie ok. 30 sekund)"):
         documents = []
         for pdf_path in PDF_FILE_PATHS:
@@ -211,17 +209,13 @@ def load_resources(PDF_FILE_PATHS):
                 print(f"Brak pliku: {pdf_path}")
         
         if not documents:
-            # Awaryjny dokument, żeby aplikacja nie padła, jeśli nie znajdzie PDF
             documents = [Document(page_content="Brak wiedzy.", metadata={})]
             st.error("Nie znaleziono plików PDF w folderze docs!")
 
-        # Podział tekstu
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=30)
         splits = text_splitter.split_documents(documents)
         
-        # Tworzenie bazy w RAM
         vector_store = FAISS.from_documents(splits, embedding_model)
-        print("✅ Baza wiedzy utworzona w pamięci.")
 
     # 3. Konfiguracja Chatbota
     chat = ChatOpenAI(
