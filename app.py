@@ -10,8 +10,8 @@ from zoneinfo import ZoneInfo
 import os
 import random
 
+from langchain_openai import ChatOpenAI  
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
