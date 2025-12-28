@@ -2,10 +2,11 @@ streamlit==1.35.0
 openai==1.35.3
 gspread==6.1.2
 google-api-python-client==2.137.0
-langchain==0.0.350
-langchain-community==0.0.350
-langchain-openai==0.0.2
+langchain
+langchain-community
+langchain-openai
+langchain-huggingface
 faiss-cpu
-sentence-transformers==2.2.2
+sentence-transformers
 scikit-learn
-pydantic==1.10.13
+pydantic>=2.0
