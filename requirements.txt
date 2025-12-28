@@ -9,4 +9,4 @@ langchain-huggingface==0.0.3
 faiss-cpu
 sentence-transformers==3.0.1
 scikit-learn==1.5.1
-pydantic==1.10.15
+pydantic==1.10.13
