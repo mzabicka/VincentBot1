@@ -10,3 +10,4 @@ faiss-cpu
 sentence-transformers==3.0.1
 scikit-learn==1.5.1
 pydantic>=2.7.4
+tiktoken
