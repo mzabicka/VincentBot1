@@ -17,3 +17,4 @@ Google Sheets API (Zapis wyników badania)
 Autor: Marta Żabicka Promotor: dr Maksymilian Bielecki Rok akademicki: 2024/2025
 
 
+
