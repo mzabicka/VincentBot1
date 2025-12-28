@@ -9,4 +9,4 @@ langchain-huggingface
 faiss-cpu
 sentence-transformers
 scikit-learn
-pydantic>=2.0
+pydantic
